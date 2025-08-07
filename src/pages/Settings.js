@@ -36,6 +36,7 @@ const Settings = () => {
       
       // Update email configuration on server if provided
       if (formData.emailConfig.user && formData.emailConfig.password) {
+        const apiBase = process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5000/api';
         const response = await fetch(`${apiBase}/update-email-config`, {
           method: 'POST',
           headers: {
