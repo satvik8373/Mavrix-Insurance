@@ -53,7 +53,7 @@ const Dashboard = () => {
     setSendingEmail(entry.id);
 
     try {
-      const apiBase = process.env.NODE_ENV === 'production' ? 'https://mavrix-api.vercel.app/api' : 'http://localhost:5000/api';
+      const apiBase = process.env.NODE_ENV === 'production' ? 'https://mavrix-insurance-api.vercel.app/api' : 'http://localhost:5000/api';
       const response = await fetch(`${apiBase}/send-single-reminder`, {
         method: 'POST',
         headers: {
