@@ -63,7 +63,7 @@ let insuranceData = [];
 let emailLogs = [];
 
 // Routes
-app.get('/api/health', (req, res) => {
+app.get('/health', (req, res) => {
   res.json({
     status: 'OK',
     message: 'Mavrix Insurance API is running',
@@ -73,7 +73,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-app.get('/api/insurance', async (req, res) => {
+app.get('/insurance', async (req, res) => {
   try {
     if (useDatabase) {
       const data = await database.getInsuranceData();
@@ -87,7 +87,7 @@ app.get('/api/insurance', async (req, res) => {
   }
 });
 
-app.post('/api/insurance', async (req, res) => {
+app.post('/insurance', async (req, res) => {
   try {
     const newEntry = {
       ...req.body,
@@ -108,7 +108,7 @@ app.post('/api/insurance', async (req, res) => {
   }
 });
 
-app.put('/api/insurance/:id', async (req, res) => {
+app.put('/insurance/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -133,7 +133,7 @@ app.put('/api/insurance/:id', async (req, res) => {
   }
 });
 
-app.delete('/api/insurance/:id', async (req, res) => {
+app.delete('/insurance/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -158,7 +158,7 @@ app.delete('/api/insurance/:id', async (req, res) => {
   }
 });
 
-app.post('/api/insurance/bulk', async (req, res) => {
+app.post('/insurance/bulk', async (req, res) => {
   try {
     const { data } = req.body;
     const newEntries = data.map((entry, index) => ({
@@ -180,7 +180,7 @@ app.post('/api/insurance/bulk', async (req, res) => {
   }
 });
 
-app.get('/api/logs', async (req, res) => {
+app.get('/logs', async (req, res) => {
   try {
     if (useDatabase) {
       const logs = await database.getEmailLogs();
@@ -194,7 +194,7 @@ app.get('/api/logs', async (req, res) => {
   }
 });
 
-app.post('/api/send-single-reminder', async (req, res) => {
+app.post('/send-single-reminder', async (req, res) => {
   try {
     const { name, email, expiryDate, vehicleNo, vehicleType, mobileNo } = req.body;
 
@@ -232,7 +232,7 @@ app.post('/api/send-single-reminder', async (req, res) => {
   }
 });
 
-app.post('/api/update-email-config', (req, res) => {
+app.post('/update-email-config', (req, res) => {
   try {
     const { host, port, user, password } = req.body;
 

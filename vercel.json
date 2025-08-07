@@ -16,7 +16,7 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/api/$1.js"
+v      "dest": "/api/index.js"
     },
     {
       "src": "/(.*)",
