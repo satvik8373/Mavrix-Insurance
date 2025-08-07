@@ -53,7 +53,8 @@ const Dashboard = () => {
     setSendingEmail(entry.id);
 
     try {
-      const response = await fetch('http://localhost:5000/api/send-single-reminder', {
+      const apiBase = process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5000/api';
+      const response = await fetch(`${apiBase}/send-single-reminder`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
