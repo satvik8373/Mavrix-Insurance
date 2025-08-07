@@ -11,9 +11,9 @@ export const useData = () => {
   return context;
 };
 
-const API_BASE = process.env.NODE_ENV === 'production' 
+const API_BASE = process.env.REACT_APP_API_BASE_URL || (process.env.NODE_ENV === 'production' 
   ? 'https://mavrix-insurance-api.vercel.app/api' 
-  : 'http://localhost:5000/api';
+  : 'http://localhost:5000/api');
 
 export const DataProvider = ({ children }) => {
   const [insuranceData, setInsuranceData] = useState([]);
