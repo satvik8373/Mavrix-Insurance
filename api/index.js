@@ -1,26 +1,54 @@
 // Vercel serverless function entry point
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 
 // Import the main server logic
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ['https://mavrix-insurance.vercel.app', 'http://localhost:3000'],
+  credentials: true
+}));
 app.use(express.json());
 
-// Import database and emailer
-const database = require('../server/database');
-const emailer = require('../server/emailer');
+// Import database and emailer with error handling
+let database, emailer;
+try {
+  database = require('../server/database');
+  emailer = require('../server/emailer');
+} catch (error) {
+  console.error('Error importing server modules:', error);
+  // Create fallback objects
+  database = {
+    connect: async () => false,
+    isConnected: false,
+    getInsuranceData: async () => [],
+    addInsuranceEntry: async () => ({ id: Date.now().toString() }),
+    updateInsuranceEntry: async () => ({}),
+    deleteInsuranceEntry: async () => true,
+    bulkAddInsuranceData: async () => [],
+    getEmailLogs: async () => [],
+    addEmailLog: async () => true
+  };
+  emailer = {
+    sendReminderEmail: async () => ({ success: false, message: 'Email service unavailable' }),
+    setupTransporter: () => {}
+  };
+}
 
 // Initialize database connection
 let useDatabase = false;
 
 const initializeStorage = async () => {
   try {
-    useDatabase = await database.connect();
-    console.log(`Using ${useDatabase ? 'MongoDB' : 'File'} storage`);
+    if (database && typeof database.connect === 'function') {
+      useDatabase = await database.connect();
+      console.log(`Using ${useDatabase ? 'MongoDB' : 'File'} storage`);
+    } else {
+      console.log('Database module not available, using file storage');
+      useDatabase = false;
+    }
   } catch (error) {
     console.error('Database initialization error:', error);
     useDatabase = false;
