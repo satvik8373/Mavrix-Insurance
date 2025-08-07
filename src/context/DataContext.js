@@ -12,7 +12,7 @@ export const useData = () => {
 };
 
 const API_BASE = process.env.NODE_ENV === 'production' 
-  ? '/api' 
+  ? 'https://mavrix-api.vercel.app/api' 
   : 'http://localhost:5000/api';
 
 export const DataProvider = ({ children }) => {
