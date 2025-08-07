@@ -33,7 +33,7 @@ try {
   };
   emailer = {
     sendReminderEmail: async () => ({ success: false, message: 'Email service unavailable' }),
-    setupTransporter: () => {}
+    setupTransporter: () => { }
   };
 }
 
@@ -64,8 +64,8 @@ let emailLogs = [];
 
 // Routes
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
+  res.json({
+    status: 'OK',
     message: 'Mavrix Insurance API is running',
     database: useDatabase ? 'MongoDB' : 'File Storage',
     connected: database.isConnected,
@@ -197,14 +197,14 @@ app.get('/api/logs', async (req, res) => {
 app.post('/api/send-single-reminder', async (req, res) => {
   try {
     const { name, email, expiryDate, vehicleNo, vehicleType, mobileNo } = req.body;
-    
+
     if (!name || !email || !expiryDate) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
     const entry = { name, email, expiryDate, vehicleNo, vehicleType, mobileNo };
     const result = await emailer.sendReminderEmail(entry);
-    
+
     // Log the result
     const logEntry = {
       id: Date.now().toString() + Math.random(),
@@ -220,14 +220,14 @@ app.post('/api/send-single-reminder', async (req, res) => {
     } else {
       emailLogs.unshift(logEntry);
     }
-    
+
     res.json(result);
   } catch (error) {
     console.error('Error sending single reminder:', error);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       message: 'Failed to send email',
-      error: error.message 
+      error: error.message
     });
   }
 });
@@ -235,25 +235,25 @@ app.post('/api/send-single-reminder', async (req, res) => {
 app.post('/api/update-email-config', (req, res) => {
   try {
     const { host, port, user, password } = req.body;
-    
+
     // Update environment variables (for current session)
     process.env.SMTP_HOST = host;
     process.env.SMTP_PORT = port;
     process.env.EMAIL_USER = user;
     process.env.EMAIL_PASSWORD = password;
-    
+
     // Reinitialize emailer with new config
     emailer.setupTransporter();
-    
-    res.json({ 
-      success: true, 
-      message: 'Email configuration updated successfully' 
+
+    res.json({
+      success: true,
+      message: 'Email configuration updated successfully'
     });
   } catch (error) {
     console.error('Error updating email config:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Failed to update email configuration' 
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update email configuration'
     });
   }
 });
