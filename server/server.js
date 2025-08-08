@@ -22,14 +22,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://mavrix-insurance.vercel.app', 'http://localhost:3000']
-    : ['http://localhost:3000'],
-  credentials: true,
-  optionsSuccessStatus: 200
-};
-app.use(cors(corsOptions));
+app.use(cors());
 app.use(express.json());
 
 // File paths for data persistence
@@ -102,23 +95,6 @@ const initializeStorage = async () => {
 };
 
 // Routes
-app.get('/api/test', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    message: 'API is working!',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV,
-    vercel: process.env.VERCEL === '1'
-  });
-});
-
-app.get('/api/simple', (req, res) => {
-  res.json({ 
-    message: 'Simple endpoint working!',
-    time: new Date().toISOString()
-  });
-});
-
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
@@ -383,9 +359,8 @@ app.post('/api/send-single-reminder', async (req, res) => {
   }
 });
 
-// Schedule daily reminder check at 8 AM (only in non-serverless environments)
-if (process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '1') {
-  cron.schedule('0 8 * * *', async () => {
+// Schedule daily reminder check at 8 AM
+cron.schedule('0 8 * * *', async () => {
   console.log('Running daily reminder check...');
   try {
     const results = await emailer.sendReminders(insuranceData);
@@ -415,32 +390,23 @@ if (process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '1') {
   } catch (error) {
     console.error('Error in scheduled reminder check:', error);
   }
-  });
-}
-
-// Initialize storage and start server
-const initializeApp = async () => {
-  try {
-    await initializeStorage();
-    console.log(`Storage: ${useDatabase ? 'MongoDB' : 'File-based'}`);
-    console.log('Daily reminders scheduled for 8:00 AM');
-  } catch (error) {
-    console.error('Error initializing app:', error);
-    // Don't fail the entire app if initialization fails
-  }
-};
-
-// Initialize the app for Vercel
-initializeApp().catch(error => {
-  console.error('Failed to initialize app:', error);
 });
 
-// Start the server only if not in Vercel environment
-if (process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '1') {
+// Start server after initializing storage
+const startServer = async () => {
+  await initializeStorage();
+  
   const server = app.listen(PORT, () => {
     console.log(`InsureTrack server running on port ${PORT}`);
+    console.log(`Storage: ${useDatabase ? 'MongoDB' : 'File-based'}`);
+    console.log('Daily reminders scheduled for 8:00 AM');
   });
 
+  return server;
+};
+
+// Start the server
+startServer().then(server => {
   console.log('Server started successfully, setting up shutdown handlers...');
   
   // Graceful shutdown handlers
@@ -472,8 +438,8 @@ if (process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '1') {
 
   // Keep the process alive
   console.log('Server is running and ready to accept connections...');
-}
-
-// Export for Vercel serverless functions
-module.exports = app;
+}).catch(error => {
+  console.error('Failed to start server:', error);
+  process.exit(1);
+});
 

@@ -1,215 +1,239 @@
-// Vercel serverless function entry point
 const express = require('express');
 const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
+require('dotenv').config();
 
-// Import the main server logic
+const database = require('../server/database');
+const emailer = require('../server/emailer');
+
 const app = express();
 
 // Middleware
-app.use(cors({
-  origin: ['https://mavrix-insurance.vercel.app', 'http://localhost:3000'],
-  credentials: true
-}));
+app.use(cors());
 app.use(express.json());
 
-// Import database and emailer with error handling
-let database, emailer;
-try {
-  database = require('../server/database');
-  emailer = require('../server/emailer');
-} catch (error) {
-  console.error('Error importing server modules:', error);
-  // Create fallback objects
-  database = {
-    connect: async () => false,
-    isConnected: false,
-    getInsuranceData: async () => [],
-    addInsuranceEntry: async () => ({ id: Date.now().toString() }),
-    updateInsuranceEntry: async () => ({}),
-    deleteInsuranceEntry: async () => true,
-    bulkAddInsuranceData: async () => [],
-    getEmailLogs: async () => [],
-    addEmailLog: async () => true
-  };
-  emailer = {
-    sendReminderEmail: async () => ({ success: false, message: 'Email service unavailable' }),
-    setupTransporter: () => { }
-  };
+// File paths for data persistence (using /tmp for Vercel)
+const DATA_DIR = process.env.NODE_ENV === 'production' ? '/tmp' : path.join(__dirname, '../server/data');
+const INSURANCE_DATA_FILE = path.join(DATA_DIR, 'insurance.json');
+const EMAIL_LOGS_FILE = path.join(DATA_DIR, 'email-logs.json');
+
+// Ensure data directory exists
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-// Initialize database connection
-let useDatabase = false;
-
-const initializeStorage = async () => {
-  try {
-    if (database && typeof database.connect === 'function') {
-      useDatabase = await database.connect();
-      console.log(`Using ${useDatabase ? 'MongoDB' : 'File'} storage`);
-    } else {
-      console.log('Database module not available, using file storage');
-      useDatabase = false;
-    }
-  } catch (error) {
-    console.error('Database initialization error:', error);
-    useDatabase = false;
-  }
-};
-
-// Initialize on startup
-initializeStorage();
-
-// In-memory storage for fallback
+// Load data from files
 let insuranceData = [];
 let emailLogs = [];
 
+const loadData = () => {
+  try {
+    if (fs.existsSync(INSURANCE_DATA_FILE)) {
+      const data = fs.readFileSync(INSURANCE_DATA_FILE, 'utf8');
+      insuranceData = JSON.parse(data);
+    }
+    if (fs.existsSync(EMAIL_LOGS_FILE)) {
+      const data = fs.readFileSync(EMAIL_LOGS_FILE, 'utf8');
+      emailLogs = JSON.parse(data);
+    }
+  } catch (error) {
+    console.error('Error loading data:', error);
+  }
+};
+
+const saveInsuranceData = () => {
+  try {
+    fs.writeFileSync(INSURANCE_DATA_FILE, JSON.stringify(insuranceData, null, 2));
+  } catch (error) {
+    console.error('Error saving insurance data:', error);
+  }
+};
+
+const saveEmailLogs = () => {
+  try {
+    fs.writeFileSync(EMAIL_LOGS_FILE, JSON.stringify(emailLogs, null, 2));
+  } catch (error) {
+    console.error('Error saving email logs:', error);
+  }
+};
+
+// Initialize database and load existing data
+let useDatabase = false;
+
+const initializeStorage = async () => {
+  useDatabase = await database.connect();
+
+  if (useDatabase) {
+    insuranceData = await database.getInsuranceData();
+    emailLogs = await database.getEmailLogs();
+  } else {
+    loadData();
+  }
+};
+
+// Initialize storage when the module is loaded
+let initialized = false;
+
+const ensureInitialized = async () => {
+  if (!initialized) {
+    await initializeStorage();
+    initialized = true;
+  }
+};
+
 // Routes
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'OK',
-    message: 'Mavrix Insurance API is running',
-    database: useDatabase ? 'MongoDB' : 'File Storage',
-    connected: database.isConnected,
-    timestamp: new Date().toISOString()
+app.get('/api/health', async (req, res) => {
+  await ensureInitialized();
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    storage: useDatabase ? 'MongoDB' : 'File-based'
   });
 });
 
-app.get('/insurance', async (req, res) => {
+app.get('/api/insurance', async (req, res) => {
+  await ensureInitialized();
   try {
     if (useDatabase) {
-      const data = await database.getInsuranceData();
-      res.json(data);
-    } else {
-      res.json(insuranceData);
+      insuranceData = await database.getInsuranceData();
     }
+    res.json(insuranceData);
   } catch (error) {
     console.error('Error fetching insurance data:', error);
-    res.status(500).json({ error: 'Failed to fetch data' });
+    res.status(500).json({ error: 'Failed to fetch insurance data' });
   }
 });
 
-app.post('/insurance', async (req, res) => {
+app.post('/api/insurance', async (req, res) => {
+  await ensureInitialized();
   try {
     const newEntry = {
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
       ...req.body,
-      id: Date.now().toString(),
       createdAt: new Date().toISOString()
     };
 
     if (useDatabase) {
-      const result = await database.addInsuranceEntry(newEntry);
-      res.status(201).json(result);
+      await database.addInsuranceEntry(newEntry);
+      insuranceData = await database.getInsuranceData();
     } else {
       insuranceData.push(newEntry);
-      res.status(201).json(newEntry);
+      saveInsuranceData();
     }
+
+    res.status(201).json(newEntry);
   } catch (error) {
-    console.error('Error adding insurance entry:', error);
-    res.status(500).json({ error: 'Failed to add entry' });
+    console.error('Error adding insurance data:', error);
+    res.status(500).json({ error: 'Failed to add insurance data' });
   }
 });
 
-app.put('/insurance/:id', async (req, res) => {
+app.put('/api/insurance/:id', async (req, res) => {
+  await ensureInitialized();
   try {
     const { id } = req.params;
+    const updatedData = req.body;
 
     if (useDatabase) {
-      const result = await database.updateInsuranceEntry(id, req.body);
-      res.json(result);
+      await database.updateInsuranceEntry(id, updatedData);
+      insuranceData = await database.getInsuranceData();
     } else {
-      const index = insuranceData.findIndex(entry => entry.id === id);
-      if (index === -1) {
-        return res.status(404).json({ error: 'Entry not found' });
+      const index = insuranceData.findIndex(item => item.id === id);
+      if (index !== -1) {
+        insuranceData[index] = { ...insuranceData[index], ...updatedData, updatedAt: new Date().toISOString() };
+        saveInsuranceData();
+      } else {
+        return res.status(404).json({ error: 'Insurance entry not found' });
       }
-      insuranceData[index] = { ...insuranceData[index], ...req.body };
-      res.json(insuranceData[index]);
     }
+
+    res.json({ success: true });
   } catch (error) {
-    console.error('Error updating insurance entry:', error);
-    if (error.message === 'Entry not found') {
-      res.status(404).json({ error: 'Entry not found' });
-    } else {
-      res.status(500).json({ error: 'Failed to update entry' });
-    }
+    console.error('Error updating insurance data:', error);
+    res.status(500).json({ error: 'Failed to update insurance data' });
   }
 });
 
-app.delete('/insurance/:id', async (req, res) => {
+app.delete('/api/insurance/:id', async (req, res) => {
+  await ensureInitialized();
   try {
     const { id } = req.params;
 
     if (useDatabase) {
       await database.deleteInsuranceEntry(id);
-      res.status(204).send();
+      insuranceData = await database.getInsuranceData();
     } else {
-      const index = insuranceData.findIndex(entry => entry.id === id);
-      if (index === -1) {
-        return res.status(404).json({ error: 'Entry not found' });
+      const index = insuranceData.findIndex(item => item.id === id);
+      if (index !== -1) {
+        insuranceData.splice(index, 1);
+        saveInsuranceData();
+      } else {
+        return res.status(404).json({ error: 'Insurance entry not found' });
       }
-      insuranceData.splice(index, 1);
-      res.status(204).send();
     }
+
+    res.json({ success: true });
   } catch (error) {
-    console.error('Error deleting insurance entry:', error);
-    if (error.message === 'Entry not found') {
-      res.status(404).json({ error: 'Entry not found' });
-    } else {
-      res.status(500).json({ error: 'Failed to delete entry' });
-    }
+    console.error('Error deleting insurance data:', error);
+    res.status(500).json({ error: 'Failed to delete insurance data' });
   }
 });
 
-app.post('/insurance/bulk', async (req, res) => {
+app.post('/api/insurance/bulk', async (req, res) => {
+  await ensureInitialized();
   try {
-    const { data } = req.body;
-    const newEntries = data.map((entry, index) => ({
+    const newEntries = req.body.map(entry => ({
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
       ...entry,
-      id: (Date.now() + index).toString(),
       createdAt: new Date().toISOString()
     }));
 
     if (useDatabase) {
-      const result = await database.bulkAddInsuranceData(newEntries);
-      res.status(201).json(result);
+      await database.bulkAddInsuranceData(newEntries);
+      insuranceData = await database.getInsuranceData();
     } else {
       insuranceData.push(...newEntries);
-      res.status(201).json(newEntries);
+      saveInsuranceData();
     }
+
+    res.status(201).json({ success: true, count: newEntries.length });
   } catch (error) {
-    console.error('Error bulk adding insurance data:', error);
-    res.status(500).json({ error: 'Failed to bulk add entries' });
+    console.error('Error adding bulk insurance data:', error);
+    res.status(500).json({ error: 'Failed to add bulk insurance data' });
   }
 });
 
-app.get('/logs', async (req, res) => {
+app.get('/api/logs', async (req, res) => {
+  await ensureInitialized();
   try {
     if (useDatabase) {
-      const logs = await database.getEmailLogs();
-      res.json(logs);
-    } else {
-      res.json(emailLogs);
+      emailLogs = await database.getEmailLogs();
     }
+    res.json(emailLogs);
   } catch (error) {
     console.error('Error fetching email logs:', error);
-    res.status(500).json({ error: 'Failed to fetch logs' });
+    res.status(500).json({ error: 'Failed to fetch email logs' });
   }
 });
 
-app.post('/send-single-reminder', async (req, res) => {
+app.post('/api/send-reminder/:id', async (req, res) => {
+  await ensureInitialized();
   try {
-    const { name, email, expiryDate, vehicleNo, vehicleType, mobileNo } = req.body;
-
-    if (!name || !email || !expiryDate) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    const { id } = req.params;
+    const entry = insuranceData.find(item => item.id === id);
+    
+    if (!entry) {
+      return res.status(404).json({ error: 'Insurance entry not found' });
     }
 
-    const entry = { name, email, expiryDate, vehicleNo, vehicleType, mobileNo };
     const result = await emailer.sendReminderEmail(entry);
-
-    // Log the result
+    
+    // Log the email
     const logEntry = {
       id: Date.now().toString() + Math.random(),
       timestamp: new Date().toISOString(),
-      recipient: result.email,
+      recipient: entry.email,
       status: result.success ? 'success' : 'failed',
       message: result.message,
       error: result.error
@@ -219,6 +243,7 @@ app.post('/send-single-reminder', async (req, res) => {
       await database.addEmailLog(logEntry);
     } else {
       emailLogs.unshift(logEntry);
+      saveEmailLogs();
     }
 
     res.json(result);
@@ -232,31 +257,5 @@ app.post('/send-single-reminder', async (req, res) => {
   }
 });
 
-app.post('/update-email-config', (req, res) => {
-  try {
-    const { host, port, user, password } = req.body;
-
-    // Update environment variables (for current session)
-    process.env.SMTP_HOST = host;
-    process.env.SMTP_PORT = port;
-    process.env.EMAIL_USER = user;
-    process.env.EMAIL_PASSWORD = password;
-
-    // Reinitialize emailer with new config
-    emailer.setupTransporter();
-
-    res.json({
-      success: true,
-      message: 'Email configuration updated successfully'
-    });
-  } catch (error) {
-    console.error('Error updating email config:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to update email configuration'
-    });
-  }
-});
-
-// Export for Vercel serverless function
+// Export the app for Vercel
 module.exports = app;

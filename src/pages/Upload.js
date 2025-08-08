@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Upload as UploadIcon, FileSpreadsheet, Check, X } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import * as ExcelJS from 'exceljs';
 import { useData } from '../context/DataContext';
 import { format, parseISO } from 'date-fns';
 import toast from 'react-hot-toast';
@@ -38,7 +38,7 @@ const Upload = () => {
     }
   };
 
-  const handleFile = (file) => {
+  const handleFile = async (file) => {
     if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
       toast.error('Please upload an Excel file (.xlsx or .xls)');
       return;
@@ -47,13 +47,33 @@ const Upload = () => {
     setFileName(file.name);
     const reader = new FileReader();
     
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(data.buffer);
+        
+        const worksheet = workbook.getWorksheet(1); // Get the first worksheet
+        if (!worksheet) {
+          toast.error('No worksheet found in the Excel file');
+          return;
+        }
+
+        const jsonData = [];
+        worksheet.eachRow((row, rowNumber) => {
+          if (rowNumber === 1) return; // Skip header row
+          
+          const rowData = {};
+          row.eachCell((cell, colNumber) => {
+            const headerCell = worksheet.getRow(1).getCell(colNumber);
+            const header = headerCell.value ? headerCell.value.toString().trim() : `Column${colNumber}`;
+            rowData[header] = cell.value;
+          });
+          
+          if (Object.keys(rowData).length > 0) {
+            jsonData.push(rowData);
+          }
+        });
         
         // Validate and transform data
         const validatedData = validateAndTransformData(jsonData);
@@ -100,7 +120,10 @@ const Upload = () => {
       // Parse and validate date
       let parsedDate;
       try {
-        if (typeof expiryDate === 'number') {
+        if (expiryDate instanceof Date) {
+          // ExcelJS Date object
+          parsedDate = format(expiryDate, 'yyyy-MM-dd');
+        } else if (typeof expiryDate === 'number') {
           // Excel date serial number
           const excelDate = new Date((expiryDate - 25569) * 86400 * 1000);
           parsedDate = format(excelDate, 'yyyy-MM-dd');

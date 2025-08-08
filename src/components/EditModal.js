@@ -36,7 +36,7 @@ const EditModal = ({ entry, onClose }) => {
     }
 
     // Validate mobile number format
-    const mobileRegex = /^[+]?[0-9\s\-()]{10,15}$/;
+    const mobileRegex = /^[\+]?[0-9\s\-\(\)]{10,15}$/;
     if (!mobileRegex.test(formData.mobileNo)) {
       toast.error('Please enter a valid mobile number');
       return;

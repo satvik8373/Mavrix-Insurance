@@ -53,8 +53,7 @@ const Dashboard = () => {
     setSendingEmail(entry.id);
 
     try {
-      const apiBase = process.env.REACT_APP_API_BASE_URL || (process.env.NODE_ENV === 'production' ? 'https://mavrix-insurance-api.vercel.app/api' : 'http://localhost:5000/api');
-      const response = await fetch(`${apiBase}/send-single-reminder`, {
+      const response = await fetch('http://localhost:5000/api/send-single-reminder', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

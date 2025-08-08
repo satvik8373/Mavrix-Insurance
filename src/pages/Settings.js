@@ -36,8 +36,7 @@ const Settings = () => {
       
       // Update email configuration on server if provided
       if (formData.emailConfig.user && formData.emailConfig.password) {
-        const apiBase = process.env.REACT_APP_API_BASE_URL || (process.env.NODE_ENV === 'production' ? 'https://mavrix-insurance-api.vercel.app/api' : 'http://localhost:5000/api');
-        const response = await fetch(`${apiBase}/update-email-config`, {
+        const response = await fetch('http://localhost:5000/api/update-email-config', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -87,8 +86,7 @@ const Settings = () => {
         expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
       };
 
-      const apiBase = process.env.REACT_APP_API_BASE_URL || (process.env.NODE_ENV === 'production' ? 'https://mavrix-insurance-api.vercel.app/api' : 'http://localhost:5000/api');
-      const response = await fetch(`${apiBase}/send-single-reminder`, {
+      const response = await fetch('http://localhost:5000/api/send-single-reminder', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
