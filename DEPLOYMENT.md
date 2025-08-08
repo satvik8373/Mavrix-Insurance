@@ -31,7 +31,24 @@
 - **Deploy from correct directories:**
   - Client: `cd client && vercel --prod`
   - Server: `cd server && vercel --prod`
+  - **NEVER deploy from root directory** (will cause build errors)
 
 - **Environment Variables:** See `ENVIRONMENT.md` for required variables
 - **CORS:** Server allows all origins by default
 - **Database:** Uses file storage if MongoDB not configured
+
+## 🚨 Important: Deployment Instructions
+
+**Always deploy from the specific directories:**
+
+```bash
+# For Client Deployment
+cd client
+vercel --prod
+
+# For Server Deployment  
+cd server
+vercel --prod
+```
+
+**Never deploy from the root directory** - this will cause build errors because the root package.json doesn't have the proper build configuration for individual apps.

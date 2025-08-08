@@ -1,0 +1,7 @@
+# This is a monorepo - deploy from client/ or server/ directories
+# Do not deploy from root directory
+client/
+server/
+node_modules/
+*.log
+.env*
