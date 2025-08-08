@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
 
+// Force redeploy - API updated at: 2024-01-XX
 const database = require('../server/database');
 const emailer = require('../server/emailer');
 
