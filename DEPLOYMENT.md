@@ -8,9 +8,9 @@
 - **Status:** ✅ Live
 
 ### Server (API)
-- **URL:** https://mavrix-insurance-88wncyjx1-satvik8373s-projects.vercel.app
+- **URL:** https://mavrix-insurance-5q305lk2m-satvik8373s-projects.vercel.app
 - **Project:** mavrix-insurance-api
-- **Status:** ✅ Live
+- **Status:** ✅ Live (Authentication disabled)
 
 ## 🔧 Next Steps
 
