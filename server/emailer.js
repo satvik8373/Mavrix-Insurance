@@ -18,10 +18,19 @@ class Emailer {
       }
     };
 
+    console.log('Email configuration:', {
+      host: emailConfig.host,
+      port: emailConfig.port,
+      user: emailConfig.auth.user ? '***configured***' : '***not configured***',
+      pass: emailConfig.auth.pass ? '***configured***' : '***not configured***'
+    });
+
     if (emailConfig.auth.user && emailConfig.auth.pass) {
       this.transporter = nodemailer.createTransport(emailConfig);
+      console.log('Email transporter configured successfully');
     } else {
       console.warn('Email credentials not configured. Email sending will be simulated.');
+      this.transporter = null;
     }
   }
 
