@@ -88,6 +88,21 @@ const ensureInitialized = async () => {
 };
 
 // Routes
+app.get('/', async (req, res) => {
+  res.json({ 
+    message: 'Mavrix Insurance API',
+    version: '1.0.0',
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      health: '/health',
+      insurance: '/insurance',
+      logs: '/logs',
+      sendReminder: '/send-reminder/:id'
+    }
+  });
+});
+
 app.get('/health', async (req, res) => {
   await ensureInitialized();
   res.json({ 
