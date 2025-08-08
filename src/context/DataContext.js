@@ -11,7 +11,10 @@ export const useData = () => {
   return context;
 };
 
-const API_BASE = 'http://localhost:5000/api';
+// Use environment variable for API URL, fallback to localhost for development
+const API_BASE = process.env.REACT_APP_API_URL 
+  ? `${process.env.REACT_APP_API_URL}/api`
+  : 'http://localhost:5000/api';
 
 export const DataProvider = ({ children }) => {
   const [insuranceData, setInsuranceData] = useState([]);
