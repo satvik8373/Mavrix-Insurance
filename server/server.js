@@ -392,54 +392,73 @@ cron.schedule('0 8 * * *', async () => {
   }
 });
 
-// Start server after initializing storage
-const startServer = async () => {
-  await initializeStorage();
-  
-  const server = app.listen(PORT, () => {
-    console.log(`InsureTrack server running on port ${PORT}`);
-    console.log(`Storage: ${useDatabase ? 'MongoDB' : 'File-based'}`);
-    console.log('Daily reminders scheduled for 8:00 AM');
-  });
+// Initialize storage on module load
+let isInitialized = false;
 
-  return server;
+const initializeApp = async () => {
+  if (!isInitialized) {
+    await initializeStorage();
+    isInitialized = true;
+  }
 };
 
-// Start the server
-startServer().then(server => {
-  console.log('Server started successfully, setting up shutdown handlers...');
-  
-  // Graceful shutdown handlers
-  process.on('SIGINT', async () => {
-    console.log('\nSIGINT received, shutting down gracefully...');
-
-    if (useDatabase) {
-      await database.disconnect();
-    }
-
-    server.close(() => {
-      console.log('Server closed');
-      process.exit(0);
+// For Vercel serverless deployment
+if (process.env.NODE_ENV === 'production') {
+  // Initialize immediately for serverless
+  initializeApp().catch(console.error);
+} else {
+  // Start server after initializing storage (for local development)
+  const startServer = async () => {
+    await initializeApp();
+    
+    const server = app.listen(PORT, () => {
+      console.log(`InsureTrack server running on port ${PORT}`);
+      console.log(`Storage: ${useDatabase ? 'MongoDB' : 'File-based'}`);
+      console.log('Daily reminders scheduled for 8:00 AM');
     });
-  });
 
-  process.on('SIGTERM', async () => {
-    console.log('SIGTERM received, shutting down gracefully...');
+    return server;
+  };
 
-    if (useDatabase) {
-      await database.disconnect();
-    }
+  // Start the server
+  startServer().then(server => {
+    console.log('Server started successfully, setting up shutdown handlers...');
+    
+    // Graceful shutdown handlers
+    process.on('SIGINT', async () => {
+      console.log('\nSIGINT received, shutting down gracefully...');
 
-    server.close(() => {
-      console.log('Server closed');
-      process.exit(0);
+      if (useDatabase) {
+        await database.disconnect();
+      }
+
+      server.close(() => {
+        console.log('Server closed');
+        process.exit(0);
+      });
     });
-  });
 
-  // Keep the process alive
-  console.log('Server is running and ready to accept connections...');
-}).catch(error => {
-  console.error('Failed to start server:', error);
-  process.exit(1);
-});
+    process.on('SIGTERM', async () => {
+      console.log('SIGTERM received, shutting down gracefully...');
+
+      if (useDatabase) {
+        await database.disconnect();
+      }
+
+      server.close(() => {
+        console.log('Server closed');
+        process.exit(0);
+      });
+    });
+
+    // Keep the process alive
+    console.log('Server is running and ready to accept connections...');
+  }).catch(error => {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  });
+}
+
+// Export for Vercel serverless
+module.exports = app;
 
