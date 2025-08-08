@@ -258,4 +258,7 @@ app.post('/api/send-reminder/:id', async (req, res) => {
 });
 
 // Export the app for Vercel
-module.exports = app;
+module.exports = async (req, res) => {
+  await ensureInitialized();
+  return app(req, res);
+};

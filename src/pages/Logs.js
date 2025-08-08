@@ -4,7 +4,7 @@ import { Mail, CheckCircle, XCircle, Filter } from 'lucide-react';
 import { useData } from '../context/DataContext';
 
 const Logs = () => {
-  const { emailLogs, addEmailLog } = useData();
+  const { emailLogs } = useData();
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('');
 
