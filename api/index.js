@@ -9,13 +9,9 @@ const emailer = require('../server/emailer');
 
 const app = express();
 
-// Middleware
+// Middleware - More permissive CORS for immediate fix
 app.use(cors({
-  origin: [
-    'https://mavrix-insurance.vercel.app',
-    'http://localhost:3000',
-    'http://localhost:3001'
-  ],
+  origin: true, // Allow all origins temporarily
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -92,7 +88,7 @@ const ensureInitialized = async () => {
 };
 
 // Routes
-app.get('/api/health', async (req, res) => {
+app.get('/health', async (req, res) => {
   await ensureInitialized();
   res.json({ 
     status: 'OK', 
@@ -101,7 +97,7 @@ app.get('/api/health', async (req, res) => {
   });
 });
 
-app.get('/api/insurance', async (req, res) => {
+app.get('/insurance', async (req, res) => {
   await ensureInitialized();
   try {
     if (useDatabase) {
@@ -114,7 +110,7 @@ app.get('/api/insurance', async (req, res) => {
   }
 });
 
-app.post('/api/insurance', async (req, res) => {
+app.post('/insurance', async (req, res) => {
   await ensureInitialized();
   try {
     const newEntry = {
@@ -138,7 +134,7 @@ app.post('/api/insurance', async (req, res) => {
   }
 });
 
-app.put('/api/insurance/:id', async (req, res) => {
+app.put('/insurance/:id', async (req, res) => {
   await ensureInitialized();
   try {
     const { id } = req.params;
@@ -164,7 +160,7 @@ app.put('/api/insurance/:id', async (req, res) => {
   }
 });
 
-app.delete('/api/insurance/:id', async (req, res) => {
+app.delete('/insurance/:id', async (req, res) => {
   await ensureInitialized();
   try {
     const { id } = req.params;
@@ -189,7 +185,7 @@ app.delete('/api/insurance/:id', async (req, res) => {
   }
 });
 
-app.post('/api/insurance/bulk', async (req, res) => {
+app.post('/insurance/bulk', async (req, res) => {
   await ensureInitialized();
   try {
     const newEntries = req.body.map(entry => ({
@@ -213,7 +209,7 @@ app.post('/api/insurance/bulk', async (req, res) => {
   }
 });
 
-app.get('/api/logs', async (req, res) => {
+app.get('/logs', async (req, res) => {
   await ensureInitialized();
   try {
     if (useDatabase) {
@@ -226,7 +222,7 @@ app.get('/api/logs', async (req, res) => {
   }
 });
 
-app.post('/api/send-reminder/:id', async (req, res) => {
+app.post('/send-reminder/:id', async (req, res) => {
   await ensureInitialized();
   try {
     const { id } = req.params;
