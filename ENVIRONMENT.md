@@ -63,7 +63,7 @@ Add in the Vercel dashboard for the client project:
 ```
 vercel env add REACT_APP_API_URL
 ```
-Set the value to your deployed server URL, e.g. `https://mavrix-insurance-a9fv4685o-satvik8373s-projects.vercel.app`.
+Set the value to your deployed server URL, e.g. `https://mavrix-insurance-api.vercel.app`.
 
 ---
 

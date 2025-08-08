@@ -9,8 +9,8 @@ const https = require('https');
 const http = require('http');
 
 // Configuration
-const SERVER_URL = process.env.SERVER_URL || 'https://mavrix-insurance-cc0k7wwa8-satvik8373s-projects.vercel.app';
-const CLIENT_URL = process.env.CLIENT_URL || 'https://mavrix-insurance-myt0pcy78-satvik8373s-projects.vercel.app';
+const SERVER_URL = process.env.SERVER_URL || 'https://mavrix-insurance-api.vercel.app';
+const CLIENT_URL = process.env.CLIENT_URL || 'https://mavrix-insurance.vercel.app';
 
 // Colors for output
 const colors = {

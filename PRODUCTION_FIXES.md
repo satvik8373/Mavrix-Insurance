@@ -9,7 +9,7 @@
 - `client/src/pages/Dashboard.js` - Updated API URL
 - `client/src/pages/Settings.js` - Updated API URL (2 instances)
 
-**Solution:** Standardized all API URLs to use the correct server URL: `https://mavrix-insurance-cc0k7wwa8-satvik8373s-projects.vercel.app`
+**Solution:** Standardized all API URLs to use the correct server URL: `https://mavrix-insurance-api.vercel.app`
 
 ### 2. ✅ Improved Error Handling
 **Problem:** Poor error handling in production environment could cause crashes.
@@ -98,7 +98,7 @@ REMINDER_DAYS=7
 
 ### Client (Vercel)
 ```bash
-REACT_APP_API_URL=https://mavrix-insurance-cc0k7wwa8-satvik8373s-projects.vercel.app
+REACT_APP_API_URL=https://mavrix-insurance-api.vercel.app
 ```
 
 ## Quick Fix Commands
@@ -136,17 +136,17 @@ vercel --prod
 
 ### Server Health
 ```bash
-curl https://mavrix-insurance-cc0k7wwa8-satvik8373s-projects.vercel.app/api/health
+curl https://mavrix-insurance-api.vercel.app/api/health
 ```
 
 ### Debug Information
 ```bash
-curl https://mavrix-insurance-cc0k7wwa8-satvik8373s-projects.vercel.app/api/debug
+curl https://mavrix-insurance-api.vercel.app/api/debug
 ```
 
 ### Test Email
 ```bash
-curl -X POST https://mavrix-insurance-cc0k7wwa8-satvik8373s-projects.vercel.app/api/send-single-reminder \
+curl -X POST https://mavrix-insurance-api.vercel.app/api/send-single-reminder \
   -H "Content-Type: application/json" \
   -d '{"name":"Test","email":"test@example.com","expiryDate":"2024-12-31"}'
 ```

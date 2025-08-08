@@ -81,7 +81,7 @@
 2. **Update Environment Variables:**
    ```bash
    # In Vercel Client project:
-   REACT_APP_API_URL=https://your-server-url.vercel.app
+   REACT_APP_API_URL=https://mavrix-insurance-api.vercel.app
    ```
 
 ### 4. Database Issues
@@ -107,7 +107,7 @@
 
 ### 1. Check Server Health
 ```bash
-curl https://your-server-url.vercel.app/api/health
+curl https://mavrix-insurance-api.vercel.app/api/health
 ```
 
 Expected response:
@@ -123,12 +123,12 @@ Expected response:
 
 ### 2. Check Environment Variables
 ```bash
-curl https://your-server-url.vercel.app/api/debug
+curl https://mavrix-insurance-api.vercel.app/api/debug
 ```
 
 ### 3. Test Email Sending
 ```bash
-curl -X POST https://your-server-url.vercel.app/api/send-single-reminder \
+curl -X POST https://mavrix-insurance-api.vercel.app/api/send-single-reminder \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Test User",
