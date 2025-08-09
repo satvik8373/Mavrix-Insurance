@@ -11,19 +11,11 @@ const database = require('./database');
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-  // Don't exit in production, just log
-  if (process.env.NODE_ENV !== 'production') {
-    process.exit(1);
-  }
 });
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);
-  // Don't exit in production, just log
-  if (process.env.NODE_ENV !== 'production') {
-    process.exit(1);
-  }
 });
 
 const app = express();
@@ -128,10 +120,7 @@ app.get('/api/health', (req, res) => {
     status: 'OK', 
     message: 'InsureTrack server is running',
     database: useDatabase ? 'MongoDB' : 'File Storage',
-    connected: database.isConnected,
-    emailConfigured: !!(process.env.EMAIL_USER && process.env.EMAIL_PASSWORD),
-    environment: process.env.NODE_ENV || 'development',
-    timestamp: new Date().toISOString()
+    connected: database.isConnected
   });
 });
 

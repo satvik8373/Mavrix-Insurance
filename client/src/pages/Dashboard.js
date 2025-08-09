@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
 import { format, parseISO } from 'date-fns';
-import { Search, Edit, Trash2, Plus, Filter, Mail, Phone, Calendar, User, Car } from 'lucide-react';
+import { Search, Edit, Trash2, Plus, Filter, Mail } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import StatusBadge from '../components/StatusBadge';
 import EditModal from '../components/EditModal';
 import toast from 'react-hot-toast';
-import { getApiBase } from '../utils/api';
-
-const API_BASE = getApiBase();
 
 const Dashboard = () => {
   const { insuranceData, getStatus, deleteInsuranceEntry, addEmailLog, loading } = useData();
@@ -50,11 +47,13 @@ const Dashboard = () => {
     }
   };
 
+
+
   const handleSendEmail = async (entry) => {
     setSendingEmail(entry.id);
 
     try {
-      const response = await fetch(`${API_BASE}/send-single-reminder`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://mavrix-insurance-a9fv4685o-satvik8373s-projects.vercel.app'}/api/send-single-reminder`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -122,15 +121,14 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Insurance Dashboard</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Insurance Dashboard</h1>
         <button
           onClick={() => {
             setEditingEntry(null);
             setShowEditModal(true);
           }}
-          className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors w-full sm:w-auto justify-center"
+          className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
         >
           <Plus className="h-4 w-4" />
           <span>Add New Entry</span>
@@ -138,22 +136,22 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
-          <h3 className="text-xs sm:text-sm font-medium text-gray-500">Total Entries</h3>
-          <p className="text-xl sm:text-2xl font-bold text-gray-900">{insuranceData.length}</p>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-sm font-medium text-gray-500">Total Entries</h3>
+          <p className="text-2xl font-bold text-gray-900">{insuranceData.length}</p>
         </div>
-        <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
-          <h3 className="text-xs sm:text-sm font-medium text-gray-500">Active</h3>
-          <p className="text-xl sm:text-2xl font-bold text-green-600">{statusCounts.active}</p>
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-sm font-medium text-gray-500">Active</h3>
+          <p className="text-2xl font-bold text-green-600">{statusCounts.active}</p>
         </div>
-        <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
-          <h3 className="text-xs sm:text-sm font-medium text-gray-500">Expiring Soon</h3>
-          <p className="text-xl sm:text-2xl font-bold text-yellow-600">{statusCounts.expiring}</p>
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-sm font-medium text-gray-500">Expiring Soon</h3>
+          <p className="text-2xl font-bold text-yellow-600">{statusCounts.expiring}</p>
         </div>
-        <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
-          <h3 className="text-xs sm:text-sm font-medium text-gray-500">Expired</h3>
-          <p className="text-xl sm:text-2xl font-bold text-red-600">{statusCounts.expired}</p>
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-sm font-medium text-gray-500">Expired</h3>
+          <p className="text-2xl font-bold text-red-600">{statusCounts.expired}</p>
         </div>
       </div>
 
@@ -177,7 +175,7 @@ const Dashboard = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full sm:w-auto"
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
@@ -188,88 +186,8 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Mobile Card View */}
-      <div className="lg:hidden space-y-4">
-        {filteredData.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
-            {insuranceData.length === 0 ? 'No insurance data found. Upload an Excel file to get started.' : 'No entries match your search criteria.'}
-          </div>
-        ) : (
-          filteredData.map((entry) => (
-            <div key={entry.id} className="bg-white rounded-lg shadow p-4 space-y-3">
-              {/* Header */}
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 text-lg">{entry.name || 'N/A'}</h3>
-                  <p className="text-sm text-gray-500">{entry.email || 'N/A'}</p>
-                </div>
-                <StatusBadge status={getStatus(entry.expiryDate)} />
-              </div>
-
-              {/* Vehicle Info */}
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <Car className="h-4 w-4" />
-                <span className="font-medium">{entry.vehicleNo || 'N/A'}</span>
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                  entry.vehicleType === 'Two Wheeler' 
-                    ? 'bg-blue-100 text-blue-800' 
-                    : 'bg-purple-100 text-purple-800'
-                }`}>
-                  {entry.vehicleType || 'N/A'}
-                </span>
-              </div>
-
-              {/* Contact Info */}
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <Phone className="h-4 w-4" />
-                <span>{entry.mobileNo || 'N/A'}</span>
-              </div>
-
-              {/* Expiry Date */}
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <Calendar className="h-4 w-4" />
-                <span>Expires: {entry.expiryDate ? format(parseISO(entry.expiryDate), 'MMM dd, yyyy') : 'N/A'}</span>
-              </div>
-
-              {/* Actions */}
-              <div className="flex justify-end space-x-2 pt-2 border-t border-gray-100">
-                <button
-                  onClick={() => handleSendEmail(entry)}
-                  disabled={sendingEmail === entry.id}
-                  className={`relative p-2 rounded-lg transition-colors ${
-                    sendingEmail === entry.id
-                      ? 'text-gray-400 cursor-not-allowed'
-                      : 'text-green-600 hover:bg-green-50'
-                  }`}
-                  title={sendingEmail === entry.id ? 'Sending email...' : 'Send reminder email'}
-                >
-                  <Mail className={`h-4 w-4 ${sendingEmail === entry.id ? 'animate-pulse' : ''}`} />
-                  {sendingEmail === entry.id && (
-                    <span className="absolute -top-1 -right-1 h-2 w-2 bg-yellow-400 rounded-full animate-ping"></span>
-                  )}
-                </button>
-                <button
-                  onClick={() => handleEdit(entry)}
-                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                  title="Edit entry"
-                >
-                  <Edit className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => handleDelete(entry.id, entry.name)}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                  title="Delete entry"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* Desktop Table View */}
-      <div className="hidden lg:block bg-white rounded-lg shadow overflow-hidden">
+      {/* Data Table */}
+      <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">

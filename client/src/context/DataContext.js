@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { differenceInDays, parseISO } from 'date-fns';
-import { getApiBase } from '../utils/api';
 
 const DataContext = createContext();
 
@@ -12,7 +11,7 @@ export const useData = () => {
   return context;
 };
 
-const API_BASE = getApiBase();
+const API_BASE = process.env.REACT_APP_API_URL || 'https://mavrix-insurance-cc0k7wwa8-satvik8373s-projects.vercel.app/api';
 
 export const DataProvider = ({ children }) => {
   const [insuranceData, setInsuranceData] = useState([]);
@@ -48,8 +47,6 @@ export const DataProvider = ({ children }) => {
         setInsuranceData(insuranceData);
       } else {
         console.error('Insurance response not ok:', insuranceResponse.status, insuranceResponse.statusText);
-        // Show user-friendly error
-        console.warn('Failed to load insurance data. Check server connection.');
       }
 
       // Load email logs
@@ -61,8 +58,6 @@ export const DataProvider = ({ children }) => {
         setEmailLogs(logs);
       } else {
         console.error('Logs response not ok:', logsResponse.status, logsResponse.statusText);
-        // Show user-friendly error
-        console.warn('Failed to load email logs. Check server connection.');
       }
 
       // Load settings from localStorage (settings are client-side only)
@@ -72,8 +67,6 @@ export const DataProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Error loading initial data:', error);
-      // Show user-friendly error message
-      console.warn('Network error. Please check your internet connection and try again.');
     } finally {
       setLoading(false);
     }

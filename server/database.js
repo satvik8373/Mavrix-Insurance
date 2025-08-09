@@ -12,12 +12,6 @@ class Database {
       const uri = process.env.MONGODB_URI;
       const dbName = process.env.DATABASE_NAME || 'insuretrack';
 
-      console.log('Database connection attempt:', {
-        hasUri: !!uri,
-        dbName: dbName,
-        nodeEnv: process.env.NODE_ENV
-      });
-
       if (!uri) {
         console.warn('MongoDB URI not configured. Using file-based storage.');
         return false;

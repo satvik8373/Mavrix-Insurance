@@ -3,12 +3,12 @@
 ## ✅ Successfully Deployed
 
 ### Client (Frontend)
-- **URL:** https://mavrix-insurance.vercel.app
+- **URL:** https://mavrix-insurance-myt0pcy78-satvik8373s-projects.vercel.app
 - **Project:** mavrix-insurance
 - **Status:** ✅ Live
 
 ### Server (API)
-- **URL:** https://mavrix-insurance-api.vercel.app
+- **URL:** https://mavrix-insurance-cc0k7wwa8-satvik8373s-projects.vercel.app
 - **Project:** mavrix-insurance-api
 - **Status:** ✅ Live (Authentication disabled)
 
