@@ -36,20 +36,20 @@ const Login = ({ onLogin }) => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         {/* Logo and Title */}
-        <div className="text-center mb-6 sm:mb-8">
+        <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <div className="bg-blue-600 p-3 rounded-full">
-              <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+              <Shield className="h-8 w-8 text-white" />
             </div>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">InsureTrack</h1>
-          <p className="text-gray-600 text-sm sm:text-base">Admin Portal</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">InsureTrack</h1>
+          <p className="text-gray-600">Admin Portal</p>
         </div>
 
         {/* Login Form */}
-        <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8">
+        <div className="bg-white rounded-lg shadow-lg p-8">
           <div className="mb-6">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">Admin Login</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Admin Login</h2>
             <p className="text-gray-600 text-sm">Enter your password to access the dashboard</p>
           </div>
 
@@ -98,7 +98,7 @@ const Login = ({ onLogin }) => {
           {/* Security Notice */}
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
             <div className="flex items-start space-x-2">
-              <Shield className="h-5 w-5 text-gray-400 mt-0.5 flex-shrink-0" />
+              <Shield className="h-5 w-5 text-gray-400 mt-0.5" />
               <div>
                 <p className="text-sm font-medium text-gray-700">Security Notice</p>
                 <p className="text-xs text-gray-600 mt-1">
@@ -111,7 +111,7 @@ const Login = ({ onLogin }) => {
 
         {/* Footer */}
         <div className="text-center mt-6">
-          <p className="text-xs sm:text-sm text-gray-500">
+          <p className="text-sm text-gray-500">
             InsureTrack Admin Portal v1.0
           </p>
         </div>

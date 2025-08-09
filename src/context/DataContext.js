@@ -11,7 +11,7 @@ export const useData = () => {
   return context;
 };
 
-const API_BASE = process.env.REACT_APP_API_URL || 'https://mavrix-insurance-cc0k7wwa8-satvik8373s-projects.vercel.app/api';
+const API_BASE = 'http://localhost:5000/api';
 
 export const DataProvider = ({ children }) => {
   const [insuranceData, setInsuranceData] = useState([]);
@@ -36,28 +36,18 @@ export const DataProvider = ({ children }) => {
     try {
       setLoading(true);
       
-      console.log('Loading data from API:', API_BASE);
-      
       // Load insurance data
       const insuranceResponse = await fetch(`${API_BASE}/insurance`);
-      console.log('Insurance response status:', insuranceResponse.status);
       if (insuranceResponse.ok) {
         const insuranceData = await insuranceResponse.json();
-        console.log('Insurance data loaded:', insuranceData);
         setInsuranceData(insuranceData);
-      } else {
-        console.error('Insurance response not ok:', insuranceResponse.status, insuranceResponse.statusText);
       }
 
       // Load email logs
       const logsResponse = await fetch(`${API_BASE}/logs`);
-      console.log('Logs response status:', logsResponse.status);
       if (logsResponse.ok) {
         const logs = await logsResponse.json();
-        console.log('Logs data loaded:', logs);
         setEmailLogs(logs);
-      } else {
-        console.error('Logs response not ok:', logsResponse.status, logsResponse.statusText);
       }
 
       // Load settings from localStorage (settings are client-side only)

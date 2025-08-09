@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { format, parseISO } from 'date-fns';
-import { Mail, CheckCircle, XCircle, Filter, Clock, User } from 'lucide-react';
+import { Mail, CheckCircle, XCircle, Filter } from 'lucide-react';
 import { useData } from '../context/DataContext';
 
 const Logs = () => {
@@ -14,27 +14,29 @@ const Logs = () => {
     return matchesStatus && matchesDate;
   });
 
+
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Email Logs</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Email Logs</h1>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
-          <h3 className="text-xs sm:text-sm font-medium text-gray-500">Total Emails</h3>
-          <p className="text-xl sm:text-2xl font-bold text-gray-900">{emailLogs.length}</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-sm font-medium text-gray-500">Total Emails</h3>
+          <p className="text-2xl font-bold text-gray-900">{emailLogs.length}</p>
         </div>
-        <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
-          <h3 className="text-xs sm:text-sm font-medium text-gray-500">Successful</h3>
-          <p className="text-xl sm:text-2xl font-bold text-green-600">
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-sm font-medium text-gray-500">Successful</h3>
+          <p className="text-2xl font-bold text-green-600">
             {emailLogs.filter(log => log.status === 'success').length}
           </p>
         </div>
-        <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
-          <h3 className="text-xs sm:text-sm font-medium text-gray-500">Failed</h3>
-          <p className="text-xl sm:text-2xl font-bold text-red-600">
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-sm font-medium text-gray-500">Failed</h3>
+          <p className="text-2xl font-bold text-red-600">
             {emailLogs.filter(log => log.status === 'failed').length}
           </p>
         </div>
@@ -48,7 +50,7 @@ const Logs = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full sm:w-auto"
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">All Status</option>
               <option value="success">Success</option>
@@ -60,66 +62,14 @@ const Logs = () => {
               type="date"
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full sm:w-auto"
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
         </div>
       </div>
 
-      {/* Mobile Card View */}
-      <div className="lg:hidden space-y-4">
-        {filteredLogs.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
-            {emailLogs.length === 0 
-              ? 'No email logs found. Email sending activity will appear here.' 
-              : 'No logs match your filter criteria.'
-            }
-          </div>
-        ) : (
-          filteredLogs.map((log) => (
-            <div key={log.id} className="bg-white rounded-lg shadow p-4 space-y-3">
-              {/* Header */}
-              <div className="flex justify-between items-start">
-                <div className="flex items-center space-x-2">
-                  <Mail className="h-4 w-4 text-gray-400" />
-                  <span className="font-medium text-gray-900 text-sm">{log.recipient}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  {log.status === 'success' ? (
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <XCircle className="h-4 w-4 text-red-500" />
-                  )}
-                  <span className={`text-xs font-medium ${
-                    log.status === 'success' ? 'text-green-700' : 'text-red-700'
-                  }`}>
-                    {log.status === 'success' ? 'Success' : 'Failed'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Timestamp */}
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <Clock className="h-4 w-4" />
-                <span>{format(parseISO(log.timestamp), 'MMM dd, yyyy HH:mm:ss')}</span>
-              </div>
-
-              {/* Message */}
-              <div className="text-sm text-gray-700">
-                <div>{log.message}</div>
-                {log.error && (
-                  <div className="text-red-600 text-xs mt-2 p-2 bg-red-50 rounded">
-                    <strong>Error:</strong> {log.error}
-                  </div>
-                )}
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* Desktop Table View */}
-      <div className="hidden lg:block bg-white rounded-lg shadow overflow-hidden">
+      {/* Logs Table */}
+      <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">

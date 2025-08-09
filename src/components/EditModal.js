@@ -66,21 +66,21 @@ const EditModal = ({ entry, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center p-4 sm:p-6 border-b sticky top-0 bg-white">
-          <h2 className="text-lg sm:text-xl font-semibold">
+      <div className="bg-white rounded-lg max-w-md w-full">
+        <div className="flex justify-between items-center p-6 border-b">
+          <h2 className="text-xl font-semibold">
             {entry ? 'Edit Entry' : 'Add New Entry'}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 p-1"
+            className="text-gray-400 hover:text-gray-600"
           >
-            <X className="h-5 w-5 sm:h-6 sm:w-6" />
+            <X className="h-6 w-6" />
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
-          <div className="grid grid-cols-1 gap-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Vehicle Number *
@@ -114,7 +114,7 @@ const EditModal = ({ entry, onClose }) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Name *
@@ -144,7 +144,7 @@ const EditModal = ({ entry, onClose }) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Email *
@@ -173,7 +173,7 @@ const EditModal = ({ entry, onClose }) => {
             </div>
           </div>
           
-          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
+          <div className="flex space-x-3 pt-4">
             <button
               type="button"
               onClick={onClose}

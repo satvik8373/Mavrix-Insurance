@@ -165,19 +165,19 @@ const Upload = () => {
   if (showPreview) {
     return (
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Preview Import Data</h1>
-          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-gray-900">Preview Import Data</h1>
+          <div className="flex space-x-3">
             <button
               onClick={handleCancelUpload}
-              className="flex items-center justify-center space-x-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center space-x-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <X className="h-4 w-4" />
               <span>Cancel</span>
             </button>
             <button
               onClick={handleConfirmUpload}
-              className="flex items-center justify-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+              className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
             >
               <Check className="h-4 w-4" />
               <span>Confirm Import</span>
@@ -186,44 +186,14 @@ const Upload = () => {
         </div>
 
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
-            <div className="flex items-center space-x-2">
-              <FileSpreadsheet className="h-5 w-5 text-blue-600" />
-              <span className="font-medium text-blue-900">File: {fileName}</span>
-            </div>
+          <div className="flex items-center space-x-2">
+            <FileSpreadsheet className="h-5 w-5 text-blue-600" />
+            <span className="font-medium text-blue-900">File: {fileName}</span>
             <span className="text-blue-700">({previewData.length} entries found)</span>
           </div>
         </div>
 
-        {/* Mobile Card View */}
-        <div className="lg:hidden space-y-4">
-          {previewData.map((entry, index) => (
-            <div key={index} className="bg-white rounded-lg shadow p-4 space-y-3">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 text-lg">{entry.name}</h3>
-                  <p className="text-sm text-gray-500">{entry.email}</p>
-                </div>
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                  entry.vehicleType === 'Two Wheeler' 
-                    ? 'bg-blue-100 text-blue-800' 
-                    : 'bg-purple-100 text-purple-800'
-                }`}>
-                  {entry.vehicleType}
-                </span>
-              </div>
-              
-              <div className="space-y-2 text-sm text-gray-600">
-                <div><strong>Vehicle:</strong> {entry.vehicleNo}</div>
-                <div><strong>Mobile:</strong> {entry.mobileNo}</div>
-                <div><strong>Expires:</strong> {format(parseISO(entry.expiryDate), 'MMM dd, yyyy')}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Desktop Table View */}
-        <div className="hidden lg:block bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -287,9 +257,9 @@ const Upload = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Upload Insurance Data</h1>
+      <h1 className="text-3xl font-bold text-gray-900">Upload Insurance Data</h1>
       
-      <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+      <div className="bg-white rounded-lg shadow p-6">
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-2">Excel File Requirements</h2>
           <div className="bg-gray-50 rounded-lg p-4">
@@ -306,7 +276,7 @@ const Upload = () => {
         </div>
 
         <div
-          className={`border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-colors ${
+          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
             dragActive
               ? 'border-blue-400 bg-blue-50'
               : 'border-gray-300 hover:border-gray-400'

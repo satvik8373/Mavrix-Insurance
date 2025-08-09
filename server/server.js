@@ -26,32 +26,13 @@ app.use(cors());
 app.use(express.json());
 
 // File paths for data persistence
-// Use a writable directory on serverless (e.g., Vercel) to avoid EROFS crashes
-const resolveDataDirectory = () => {
-  if (process.env.DATA_DIR && process.env.DATA_DIR.trim().length > 0) {
-    return process.env.DATA_DIR;
-  }
-
-  const isServerless = !!process.env.VERCEL || !!process.env.AWS_REGION || !!process.env.NOW_REGION;
-  if (process.env.NODE_ENV === 'production' && isServerless) {
-    // /tmp is writable in serverless environments, but ephemeral per invocation
-    return path.join('/tmp', 'insuretrack-data');
-  }
-
-  return path.join(__dirname, 'data');
-};
-
-const DATA_DIR = resolveDataDirectory();
+const DATA_DIR = path.join(__dirname, 'data');
 const INSURANCE_DATA_FILE = path.join(DATA_DIR, 'insurance.json');
 const EMAIL_LOGS_FILE = path.join(DATA_DIR, 'email-logs.json');
 
-// Ensure data directory exists (best-effort, don't crash if read-only)
-try {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
-} catch (dirError) {
-  console.warn('Warning: Could not create data directory:', DATA_DIR, '-', dirError.message);
+// Ensure data directory exists
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
 // Load data from files
@@ -80,7 +61,6 @@ const loadData = () => {
 
 const saveInsuranceData = () => {
   try {
-    // Best-effort write; in serverless /tmp is ephemeral, but avoids crashes
     fs.writeFileSync(INSURANCE_DATA_FILE, JSON.stringify(insuranceData, null, 2));
   } catch (error) {
     console.error('Error saving insurance data:', error);
@@ -412,73 +392,54 @@ cron.schedule('0 8 * * *', async () => {
   }
 });
 
-// Initialize storage on module load
-let isInitialized = false;
+// Start server after initializing storage
+const startServer = async () => {
+  await initializeStorage();
+  
+  const server = app.listen(PORT, () => {
+    console.log(`InsureTrack server running on port ${PORT}`);
+    console.log(`Storage: ${useDatabase ? 'MongoDB' : 'File-based'}`);
+    console.log('Daily reminders scheduled for 8:00 AM');
+  });
 
-const initializeApp = async () => {
-  if (!isInitialized) {
-    await initializeStorage();
-    isInitialized = true;
-  }
+  return server;
 };
 
-// For Vercel serverless deployment
-if (process.env.NODE_ENV === 'production') {
-  // Initialize immediately for serverless
-  initializeApp().catch(console.error);
-} else {
-  // Start server after initializing storage (for local development)
-  const startServer = async () => {
-    await initializeApp();
-    
-    const server = app.listen(PORT, () => {
-      console.log(`InsureTrack server running on port ${PORT}`);
-      console.log(`Storage: ${useDatabase ? 'MongoDB' : 'File-based'}`);
-      console.log('Daily reminders scheduled for 8:00 AM');
+// Start the server
+startServer().then(server => {
+  console.log('Server started successfully, setting up shutdown handlers...');
+  
+  // Graceful shutdown handlers
+  process.on('SIGINT', async () => {
+    console.log('\nSIGINT received, shutting down gracefully...');
+
+    if (useDatabase) {
+      await database.disconnect();
+    }
+
+    server.close(() => {
+      console.log('Server closed');
+      process.exit(0);
     });
-
-    return server;
-  };
-
-  // Start the server
-  startServer().then(server => {
-    console.log('Server started successfully, setting up shutdown handlers...');
-    
-    // Graceful shutdown handlers
-    process.on('SIGINT', async () => {
-      console.log('\nSIGINT received, shutting down gracefully...');
-
-      if (useDatabase) {
-        await database.disconnect();
-      }
-
-      server.close(() => {
-        console.log('Server closed');
-        process.exit(0);
-      });
-    });
-
-    process.on('SIGTERM', async () => {
-      console.log('SIGTERM received, shutting down gracefully...');
-
-      if (useDatabase) {
-        await database.disconnect();
-      }
-
-      server.close(() => {
-        console.log('Server closed');
-        process.exit(0);
-      });
-    });
-
-    // Keep the process alive
-    console.log('Server is running and ready to accept connections...');
-  }).catch(error => {
-    console.error('Failed to start server:', error);
-    process.exit(1);
   });
-}
 
-// Export for Vercel serverless
-module.exports = app;
+  process.on('SIGTERM', async () => {
+    console.log('SIGTERM received, shutting down gracefully...');
+
+    if (useDatabase) {
+      await database.disconnect();
+    }
+
+    server.close(() => {
+      console.log('Server closed');
+      process.exit(0);
+    });
+  });
+
+  // Keep the process alive
+  console.log('Server is running and ready to accept connections...');
+}).catch(error => {
+  console.error('Failed to start server:', error);
+  process.exit(1);
+});
 
