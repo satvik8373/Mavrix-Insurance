@@ -5,11 +5,17 @@
 1. **Remove server-specific vercel.json** (already done)
    - Deleted `server/vercel.json` to avoid conflicts
 
-2. **Root vercel.json configured** (already done)
+2. **Remove client-specific vercel.json** (already done)
+   - Deleted `client/vercel.json` to avoid conflicts
+
+3. **Remove client .vercel directory** (already done)
+   - Deleted `client/.vercel/` to avoid conflicts
+
+4. **Root vercel.json configured** (already done)
    - Handles both client and server builds
    - Routes API calls to server, everything else to client
 
-3. **Build script added** (already done)
+5. **Build script added** (already done)
    - Added `"build": "cd client && npm run build"` to root package.json
 
 ## 🚀 Deploy to Vercel
@@ -56,6 +62,10 @@
 
 ### Build Fails with "Missing script: build"
 - ✅ **Fixed**: Added build script to root package.json
+
+### Build Fails with "Could not find index.html"
+- ✅ **Fixed**: Removed conflicting vercel.json files from client and server directories
+- ✅ **Fixed**: Removed client/.vercel directory
 
 ### Server Not Found
 - ✅ **Fixed**: Proper routing in vercel.json
