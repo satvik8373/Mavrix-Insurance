@@ -12,6 +12,7 @@
     "dev:client": "cd client && npm start",
     "dev:server": "cd server && npm run dev",
     "start": "cd server && npm start",
+    "build": "cd client && npm run build",
     "install:all": "npm install && cd client && npm install && cd ../server && npm install"
   },
   "devDependencies": {
