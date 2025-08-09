@@ -3,6 +3,9 @@ import { Save, Mail, Clock, Send, Eye, EyeOff, Lock, Key } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import { getApiBase } from '../utils/api';
+
+const API_BASE = getApiBase();
 
 const Settings = () => {
   const { settings, setSettings } = useData();
@@ -36,7 +39,7 @@ const Settings = () => {
       
       // Update email configuration on server if provided
       if (formData.emailConfig.user && formData.emailConfig.password) {
-        const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://mavrix-insurance-api.vercel.app'}/api/update-email-config`, {
+        const response = await fetch(`${API_BASE}/update-email-config`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -86,7 +89,7 @@ const Settings = () => {
         expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
       };
 
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://mavrix-insurance-api.vercel.app'}/api/send-single-reminder`, {
+      const response = await fetch(`${API_BASE}/send-single-reminder`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -160,11 +163,11 @@ const Settings = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Settings</h1>
       
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Reminder Settings */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
           <div className="flex items-center space-x-2 mb-4">
             <Clock className="h-5 w-5 text-blue-600" />
             <h2 className="text-lg font-semibold text-gray-900">Reminder Settings</h2>
@@ -191,8 +194,8 @@ const Settings = () => {
         </div>
 
         {/* Email Configuration */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
             <div className="flex items-center space-x-2">
               <Mail className="h-5 w-5 text-blue-600" />
               <h2 className="text-lg font-semibold text-gray-900">Email Configuration</h2>
@@ -201,7 +204,7 @@ const Settings = () => {
               type="button"
               onClick={sendTestEmail}
               disabled={sendingTestEmail || !formData.emailConfig.user || !formData.emailConfig.password}
-              className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="flex items-center justify-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed w-full sm:w-auto"
             >
               <Send className={`h-4 w-4 ${sendingTestEmail ? 'animate-pulse' : ''}`} />
               <span>{sendingTestEmail ? 'Sending...' : 'Send Test Email'}</span>
@@ -270,7 +273,7 @@ const Settings = () => {
         </div>
 
         {/* Password Change */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
           <div className="flex items-center space-x-2 mb-4">
             <Key className="h-5 w-5 text-blue-600" />
             <h2 className="text-lg font-semibold text-gray-900">Change Password</h2>
@@ -300,7 +303,7 @@ const Settings = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   New Password *
@@ -350,13 +353,13 @@ const Settings = () => {
               </div>
             </div>
 
-            <div className="flex justify-between items-center pt-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4">
               <div className="text-sm text-gray-500">
                 <p>💡 <strong>Tip:</strong> Use a strong password with at least 6 characters.</p>
               </div>
               <button
                 type="submit"
-                className="flex items-center space-x-2 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                className="flex items-center justify-center space-x-2 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors w-full sm:w-auto"
               >
                 <Lock className="h-4 w-4" />
                 <span>Change Password</span>
@@ -366,8 +369,8 @@ const Settings = () => {
         </div>
 
         {/* Email Template Preview */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
             <h2 className="text-lg font-semibold text-gray-900">Email Template Preview</h2>
             <span className="text-sm text-gray-500">Live Preview</span>
           </div>
@@ -390,9 +393,9 @@ const Settings = () => {
             </div>
             
             {/* Email Body */}
-            <div className="p-6 bg-white">
+            <div className="p-4 sm:p-6 bg-white">
               <div className="max-w-2xl">
-                <h2 className="text-xl font-bold text-blue-600 mb-4">🚗 Insurance Expiry Reminder</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-blue-600 mb-4">🚗 Insurance Expiry Reminder</h2>
                 
                 <p className="text-gray-700 mb-4">
                   Hi <strong>John Doe</strong>,
@@ -405,7 +408,7 @@ const Settings = () => {
                 {/* Vehicle Details Card */}
                 <div className="bg-gray-50 rounded-lg p-4 mb-4">
                   <h3 className="font-semibold text-gray-800 mb-3">Vehicle Details:</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                  <div className="grid grid-cols-1 gap-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Vehicle Number:</span>
                       <span className="font-medium">GJ01AB1234</span>
@@ -452,7 +455,7 @@ const Settings = () => {
           {/* Template Variables Info */}
           <div className="mt-4 p-4 bg-blue-50 rounded-lg">
             <h4 className="font-medium text-blue-900 mb-2">Template Variables:</h4>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm text-blue-700">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-sm text-blue-700">
               <div><code>[Customer Name]</code> - Owner name</div>
               <div><code>[Vehicle Number]</code> - Registration number</div>
               <div><code>[Vehicle Type]</code> - Type of vehicle</div>
@@ -463,13 +466,13 @@ const Settings = () => {
           </div>
         </div>
 
-        <div className="flex justify-between">
+        <div className="flex flex-col sm:flex-row justify-between gap-4">
           <div className="text-sm text-gray-500">
             <p>💡 <strong>Tip:</strong> Save your settings first, then use "Send Test Email" to verify your configuration.</p>
           </div>
           <button
             type="submit"
-            className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center justify-center space-x-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors w-full sm:w-auto"
           >
             <Save className="h-4 w-4" />
             <span>Save Settings</span>

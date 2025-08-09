@@ -1,4 +1,4 @@
-import React from 'react';
+  import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -6,7 +6,9 @@ import {
   Settings,
   FileText,
   Shield,
-  LogOut
+  LogOut,
+  Menu,
+  X
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -14,6 +16,7 @@ import toast from 'react-hot-toast';
 const Navbar = () => {
   const location = useLocation();
   const { logout } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
     if (window.confirm('Are you sure you want to logout?')) {
@@ -29,17 +32,28 @@ const Navbar = () => {
     { path: '/logs', label: 'Logs', icon: FileText }
   ];
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
   return (
-    <nav className="bg-white shadow-lg border-b">
+    <nav className="bg-white shadow-lg border-b relative">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
+          {/* Logo and Brand */}
           <div className="flex items-center space-x-2">
             <Shield className="h-8 w-8 text-blue-600" />
-            <span className="text-xl font-bold text-gray-800">Mavrix Insurance</span>
-            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">By Shivam</span>
+            <div className="hidden sm:block">
+              <span className="text-xl font-bold text-gray-800">Mavrix Insurance</span>
+              <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded ml-2">By Shivam</span>
+            </div>
+            <div className="sm:hidden">
+              <span className="text-lg font-bold text-gray-800">Mavrix</span>
+            </div>
           </div>
 
-          <div className="flex items-center space-x-1">
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-1">
             {navItems.map(({ path, label, icon: Icon }) => (
               <Link
                 key={path}
@@ -50,7 +64,7 @@ const Navbar = () => {
                   }`}
               >
                 <Icon className="h-4 w-4" />
-                <span className="hidden sm:inline">{label}</span>
+                <span>{label}</span>
               </Link>
             ))}
             
@@ -61,10 +75,59 @@ const Navbar = () => {
               title="Logout"
             >
               <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Logout</span>
+              <span>Logout</span>
+            </button>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden">
+            <button
+              onClick={toggleMobileMenu}
+              className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+            >
+              {isMobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
             </button>
           </div>
         </div>
+
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden absolute top-16 left-0 right-0 bg-white border-b border-gray-200 shadow-lg z-50">
+            <div className="px-4 py-2 space-y-1">
+              {navItems.map(({ path, label, icon: Icon }) => (
+                <Link
+                  key={path}
+                  to={path}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                    location.pathname === path
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span className="font-medium">{label}</span>
+                </Link>
+              ))}
+              
+              {/* Mobile Logout Button */}
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  handleLogout();
+                }}
+                className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors text-red-600 hover:bg-red-50 w-full text-left"
+              >
+                <LogOut className="h-5 w-5" />
+                <span className="font-medium">Logout</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );

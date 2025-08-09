@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { differenceInDays, parseISO } from 'date-fns';
+import { getApiBase } from '../utils/api';
 
 const DataContext = createContext();
 
@@ -11,7 +12,7 @@ export const useData = () => {
   return context;
 };
 
-const API_BASE = process.env.REACT_APP_API_URL || 'https://mavrix-insurance-api.vercel.app/api';
+const API_BASE = getApiBase();
 
 export const DataProvider = ({ children }) => {
   const [insuranceData, setInsuranceData] = useState([]);

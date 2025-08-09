@@ -30,7 +30,7 @@ const AppContent = () => {
       <Router>
         <div className="min-h-screen bg-gray-50">
           <Navbar />
-          <main className="container mx-auto px-4 py-8">
+          <main className="container mx-auto px-4 py-4 sm:py-8">
             <Routes>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<Dashboard />} />
@@ -39,7 +39,16 @@ const AppContent = () => {
               <Route path="/logs" element={<Logs />} />
             </Routes>
           </main>
-          <Toaster position="top-right" />
+          <Toaster 
+            position="top-right" 
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: '#363636',
+                color: '#fff',
+              },
+            }}
+          />
         </div>
       </Router>
     </DataProvider>
