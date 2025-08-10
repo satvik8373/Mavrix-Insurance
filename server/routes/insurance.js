@@ -35,6 +35,30 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/insurance/expiring/soon - Get entries expiring soon (must be before /:id route)
+router.get('/expiring/soon', async (req, res) => {
+  try {
+    if (!database.isConnected) {
+      return res.status(503).json({ error: 'Database not connected' });
+    }
+
+    const data = await database.getInsuranceData();
+    const reminderDays = parseInt(process.env.REMINDER_DAYS) || 7;
+    const reminderDate = new Date();
+    reminderDate.setDate(reminderDate.getDate() + reminderDays);
+    
+    const expiringSoon = data.filter(entry => {
+      const expiryDate = new Date(entry.expiryDate);
+      return expiryDate <= reminderDate && expiryDate >= new Date();
+    });
+
+    res.json(expiringSoon);
+  } catch (error) {
+    console.error('Error getting expiring entries:', error);
+    res.status(500).json({ error: 'Failed to get expiring entries' });
+  }
+});
+
 // GET /api/insurance/:id - Get specific insurance entry
 router.get('/:id', async (req, res) => {
   try {
@@ -131,30 +155,6 @@ router.delete('/:id', async (req, res) => {
   } catch (error) {
     console.error('Error deleting insurance entry:', error);
     res.status(500).json({ error: 'Failed to delete insurance entry' });
-  }
-});
-
-// GET /api/insurance/expiring/soon - Get entries expiring soon
-router.get('/expiring/soon', async (req, res) => {
-  try {
-    if (!database.isConnected) {
-      return res.status(503).json({ error: 'Database not connected' });
-    }
-
-    const data = await database.getInsuranceData();
-    const reminderDays = parseInt(process.env.REMINDER_DAYS) || 7;
-    const reminderDate = new Date();
-    reminderDate.setDate(reminderDate.getDate() + reminderDays);
-    
-    const expiringSoon = data.filter(entry => {
-      const expiryDate = new Date(entry.expiryDate);
-      return expiryDate <= reminderDate && expiryDate >= new Date();
-    });
-
-    res.json(expiringSoon);
-  } catch (error) {
-    console.error('Error getting expiring entries:', error);
-    res.status(500).json({ error: 'Failed to get expiring entries' });
   }
 });
 

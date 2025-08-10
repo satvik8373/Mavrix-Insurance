@@ -4,9 +4,6 @@ require('dotenv').config();
 
 const app = express();
 
-// Database connection
-const database = require('../config/database');
-
 // Middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -28,11 +25,13 @@ app.use(cors(corsOptions));
 
 // Initialize database connection
 let dbInitialized = false;
+let database = null;
 
 async function initializeDatabase() {
     if (!dbInitialized) {
         try {
             if (process.env.MONGODB_URI) {
+                database = require('../config/database');
                 await database.connect();
                 dbInitialized = true;
                 console.log('✅ Database connected for serverless function');
@@ -41,60 +40,110 @@ async function initializeDatabase() {
             }
         } catch (error) {
             console.error('❌ Database connection error:', error.message);
+            database = null;
         }
     }
 }
 
 // Initialize database middleware (must be before routes)
 app.use(async (req, res, next) => {
-    await initializeDatabase();
-    next();
+    try {
+        await initializeDatabase();
+        next();
+    } catch (error) {
+        console.error('Database initialization error:', error);
+        next();
+    }
 });
 
-// Routes
-app.use('/api/insurance', require('../routes/insurance'));
-app.use('/api/email', require('../routes/email'));
-app.use('/api/auth', require('../routes/auth'));
-app.use('/api/upload', require('../routes/upload'));
+// Routes with error handling
+try {
+    app.use('/api/insurance', require('../routes/insurance'));
+} catch (error) {
+    console.error('Error loading insurance routes:', error);
+}
+
+try {
+    app.use('/api/email', require('../routes/email'));
+} catch (error) {
+    console.error('Error loading email routes:', error);
+}
+
+try {
+    app.use('/api/auth', require('../routes/auth'));
+} catch (error) {
+    console.error('Error loading auth routes:', error);
+}
+
+try {
+    app.use('/api/upload', require('../routes/upload'));
+} catch (error) {
+    console.error('Error loading upload routes:', error);
+}
 
 // Health check endpoint
 app.get('/api/health', async (req, res) => {
-    await initializeDatabase();
-    res.json({
-        status: 'OK',
-        timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development',
-        database: database.isConnected ? 'Connected' : 'Disconnected'
-    });
+    try {
+        await initializeDatabase();
+        res.json({
+            status: 'OK',
+            timestamp: new Date().toISOString(),
+            environment: process.env.NODE_ENV || 'development',
+            database: database && database.isConnected ? 'Connected' : 'Disconnected'
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: 'ERROR',
+            timestamp: new Date().toISOString(),
+            error: error.message
+        });
+    }
 });
 
 // Test endpoint for debugging
 app.get('/api/test', async (req, res) => {
-    await initializeDatabase();
-    res.json({
-        message: 'Serverless function is working!',
-        timestamp: new Date().toISOString(),
-        database: database.isConnected ? 'Connected' : 'Disconnected',
-        env: process.env.NODE_ENV || 'development',
-        environmentVariables: {
-            MONGODB_URI: process.env.MONGODB_URI ? 'Set' : 'Not Set',
-            DATABASE_NAME: process.env.DATABASE_NAME ? 'Set' : 'Not Set',
-            NODE_ENV: process.env.NODE_ENV || 'development',
-            ENABLE_EMAIL: process.env.ENABLE_EMAIL || 'false',
-            ENABLE_AUTH: process.env.ENABLE_AUTH || 'true'
-        }
-    });
+    try {
+        await initializeDatabase();
+        res.json({
+            message: 'Serverless function is working!',
+            timestamp: new Date().toISOString(),
+            database: database && database.isConnected ? 'Connected' : 'Disconnected',
+            env: process.env.NODE_ENV || 'development',
+            environmentVariables: {
+                MONGODB_URI: process.env.MONGODB_URI ? 'Set' : 'Not Set',
+                DATABASE_NAME: process.env.DATABASE_NAME ? 'Set' : 'Not Set',
+                NODE_ENV: process.env.NODE_ENV || 'development',
+                ENABLE_EMAIL: process.env.ENABLE_EMAIL || 'false',
+                ENABLE_AUTH: process.env.ENABLE_AUTH || 'true'
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: 'Error in test endpoint',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
 });
 
 // Root endpoint
 app.get('/', async (req, res) => {
-    await initializeDatabase();
-    res.json({
-        message: 'Insurance Alert Server API',
-        status: 'Running',
-        timestamp: new Date().toISOString(),
-        database: database.isConnected ? 'Connected' : 'Disconnected'
-    });
+    try {
+        await initializeDatabase();
+        res.json({
+            message: 'Insurance Alert Server API',
+            status: 'Running',
+            timestamp: new Date().toISOString(),
+            database: database && database.isConnected ? 'Connected' : 'Disconnected'
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: 'Insurance Alert Server API',
+            status: 'Error',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
 });
 
 // 404 handler for API routes
