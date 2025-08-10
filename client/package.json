@@ -1,37 +1,28 @@
 {
-  "name": "insuretrack-pwa",
+  "name": "insuretrack-client",
   "version": "1.0.0",
-  "description": "Admin PWA for Auto Email Insurance Reminders",
+  "description": "Insurance Alert Management System",
   "private": true,
-  "dependencies": {
-    "@testing-library/jest-dom": "^5.16.4",
-    "@testing-library/react": "^13.3.0",
-    "@testing-library/user-event": "^13.5.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.3.0",
-    "react-scripts": "5.0.1",
-    "xlsx": "^0.18.5",
-    "react-hot-toast": "^2.4.1",
-    "lucide-react": "^0.263.1",
-    "date-fns": "^2.29.3"
+  "engines": {
+    "node": ">=18.0.0"
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "CI=false react-scripts build",
-    "build:strict": "react-scripts build",
+    "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "vercel-build": "npm run build"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ],
-    "rules": {
-      "no-unused-vars": "warn",
-      "no-useless-escape": "warn"
-    }
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.20.1",
+    "react-hot-toast": "^2.4.1",
+    "lucide-react": "^0.294.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "react-scripts": "5.0.1"
   },
   "browserslist": {
     "production": [
@@ -44,5 +35,13 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "keywords": [
+    "insurance",
+    "management",
+    "react",
+    "dashboard"
+  ],
+  "author": "InsureTrack Team",
+  "license": "MIT"
 }

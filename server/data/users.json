@@ -1,0 +1,10 @@
+[
+  {
+    "id": "admin",
+    "username": "admin",
+    "email": "admin@insuretrak.com",
+    "password": "$2a$10$zPtBFOEUKOEZUkUaUNSLwODyF5NDa0tEn0Zpx1wC3zBnK/lAMR34.",
+    "role": "admin",
+    "createdAt": "2025-08-10T07:49:31.893Z"
+  }
+]

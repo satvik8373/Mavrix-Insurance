@@ -1,161 +1,157 @@
 const express = require('express');
+const { body, validationResult } = require('express-validator');
 const router = express.Router();
-const database = require('../database');
-const fs = require('fs');
-const path = require('path');
+const database = require('../config/database');
 
-// File paths for data persistence (fallback)
-const DATA_DIR = path.join(__dirname, '..', 'data');
-const INSURANCE_DATA_FILE = path.join(DATA_DIR, 'insurance.json');
-
-// Ensure data directory exists
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-}
-
-// Load data from files (fallback)
-let insuranceData = [];
-
-const loadData = () => {
-  try {
-    if (fs.existsSync(INSURANCE_DATA_FILE)) {
-      const data = fs.readFileSync(INSURANCE_DATA_FILE, 'utf8');
-      insuranceData = JSON.parse(data);
-      console.log(`Loaded ${insuranceData.length} insurance entries from file`);
-    }
-  } catch (error) {
-    console.error('Error loading insurance data:', error);
-  }
-};
-
-const saveInsuranceData = () => {
-  try {
-    fs.writeFileSync(INSURANCE_DATA_FILE, JSON.stringify(insuranceData, null, 2));
-  } catch (error) {
-    console.error('Error saving insurance data:', error);
-  }
-};
-
-// Initialize data on module load
-loadData();
+// Validation middleware
+const validateInsuranceEntry = [
+  body('name').trim().notEmpty().withMessage('Name is required'),
+  body('email').isEmail().withMessage('Valid email is required'),
+  body('policyType').trim().notEmpty().withMessage('Policy type is required'),
+  body('policyNumber').trim().notEmpty().withMessage('Policy number is required'),
+  body('expiryDate').isISO8601().withMessage('Valid expiry date is required'),
+  body('phone').optional().trim(),
+  body('premium').optional().isNumeric().withMessage('Premium must be a number'),
+  body('coverageAmount').optional().isNumeric().withMessage('Coverage amount must be a number'),
+  body('address').optional().trim(),
+  body('notes').optional().trim()
+];
 
 // GET /api/insurance - Get all insurance entries
 router.get('/', async (req, res) => {
   try {
-    if (database.isConnected) {
-      const data = await database.getInsuranceData();
-      res.json(data);
-    } else {
-      res.json(insuranceData);
+    if (!database.isConnected) {
+      return res.status(503).json({ error: 'Database not connected' });
     }
+
+    const data = await database.getInsuranceData();
+    res.json(data);
   } catch (error) {
-    console.error('Error fetching insurance data:', error);
-    res.status(500).json({ error: 'Failed to fetch data' });
+    console.error('Error loading insurance data:', error);
+    res.status(500).json({ error: 'Failed to load insurance data' });
+  }
+});
+
+// GET /api/insurance/:id - Get specific insurance entry
+router.get('/:id', async (req, res) => {
+  try {
+    if (!database.isConnected) {
+      return res.status(503).json({ error: 'Database not connected' });
+    }
+
+    const data = await database.getInsuranceData();
+    const entry = data.find(item => item._id.toString() === req.params.id);
+    
+    if (!entry) {
+      return res.status(404).json({ error: 'Insurance entry not found' });
+    }
+    
+    res.json(entry);
+  } catch (error) {
+    console.error('Error loading insurance entry:', error);
+    res.status(500).json({ error: 'Failed to load insurance entry' });
   }
 });
 
 // POST /api/insurance - Add new insurance entry
-router.post('/', async (req, res) => {
+router.post('/', validateInsuranceEntry, async (req, res) => {
   try {
+    if (!database.isConnected) {
+      return res.status(503).json({ error: 'Database not connected' });
+    }
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
     const newEntry = {
       ...req.body,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
-    if (database.isConnected) {
-      const result = await database.addInsuranceEntry(newEntry);
-      res.status(201).json(result);
-    } else {
-      insuranceData.push(newEntry);
-      saveInsuranceData();
-      res.status(201).json(newEntry);
-    }
+    const result = await database.addInsuranceEntry(newEntry);
+    res.status(201).json(result);
   } catch (error) {
     console.error('Error adding insurance entry:', error);
-    res.status(500).json({ error: 'Failed to add entry' });
+    res.status(500).json({ error: 'Failed to add insurance entry' });
   }
 });
 
 // PUT /api/insurance/:id - Update insurance entry
-router.put('/:id', async (req, res) => {
+router.put('/:id', validateInsuranceEntry, async (req, res) => {
   try {
-    const { id } = req.params;
-
-    if (database.isConnected) {
-      const result = await database.updateInsuranceEntry(id, req.body);
-      res.json(result);
-    } else {
-      const index = insuranceData.findIndex(entry => entry.id === id);
-
-      if (index === -1) {
-        return res.status(404).json({ error: 'Entry not found' });
-      }
-
-      insuranceData[index] = { ...insuranceData[index], ...req.body };
-      saveInsuranceData();
-      res.json(insuranceData[index]);
+    if (!database.isConnected) {
+      return res.status(503).json({ error: 'Database not connected' });
     }
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      console.error('Validation errors:', errors.array());
+      console.error('Request body:', req.body);
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const result = await database.updateInsuranceEntry(req.params.id, req.body);
+    
+    if (!result) {
+      return res.status(404).json({ error: 'Insurance entry not found' });
+    }
+
+    res.json(result);
   } catch (error) {
     console.error('Error updating insurance entry:', error);
+    
+    // Provide more specific error messages
     if (error.message === 'Entry not found') {
-      res.status(404).json({ error: 'Entry not found' });
-    } else {
-      res.status(500).json({ error: 'Failed to update entry' });
+      return res.status(404).json({ error: 'Insurance entry not found' });
     }
+    
+    if (error.name === 'CastError') {
+      return res.status(400).json({ error: 'Invalid entry ID format' });
+    }
+    
+    res.status(500).json({ error: 'Failed to update insurance entry', details: error.message });
   }
 });
 
 // DELETE /api/insurance/:id - Delete insurance entry
 router.delete('/:id', async (req, res) => {
   try {
-    const { id } = req.params;
-
-    if (database.isConnected) {
-      await database.deleteInsuranceEntry(id);
-      res.status(204).send();
-    } else {
-      const index = insuranceData.findIndex(entry => entry.id === id);
-
-      if (index === -1) {
-        return res.status(404).json({ error: 'Entry not found' });
-      }
-
-      insuranceData.splice(index, 1);
-      saveInsuranceData();
-      res.status(204).send();
+    if (!database.isConnected) {
+      return res.status(503).json({ error: 'Database not connected' });
     }
+
+    await database.deleteInsuranceEntry(req.params.id);
+    res.json({ message: 'Insurance entry deleted successfully' });
   } catch (error) {
     console.error('Error deleting insurance entry:', error);
-    if (error.message === 'Entry not found') {
-      res.status(404).json({ error: 'Entry not found' });
-    } else {
-      res.status(500).json({ error: 'Failed to delete entry' });
-    }
+    res.status(500).json({ error: 'Failed to delete insurance entry' });
   }
 });
 
-// POST /api/insurance/bulk - Bulk add insurance data
-router.post('/bulk', async (req, res) => {
+// GET /api/insurance/expiring/soon - Get entries expiring soon
+router.get('/expiring/soon', async (req, res) => {
   try {
-    const { data } = req.body;
-    const newEntries = data.map((entry, index) => ({
-      ...entry,
-      id: (Date.now() + index).toString(),
-      createdAt: new Date().toISOString()
-    }));
-
-    if (database.isConnected) {
-      const result = await database.bulkAddInsuranceData(newEntries);
-      res.status(201).json(result);
-    } else {
-      insuranceData.push(...newEntries);
-      saveInsuranceData();
-      res.status(201).json(newEntries);
+    if (!database.isConnected) {
+      return res.status(503).json({ error: 'Database not connected' });
     }
+
+    const data = await database.getInsuranceData();
+    const reminderDays = parseInt(process.env.REMINDER_DAYS) || 7;
+    const reminderDate = new Date();
+    reminderDate.setDate(reminderDate.getDate() + reminderDays);
+    
+    const expiringSoon = data.filter(entry => {
+      const expiryDate = new Date(entry.expiryDate);
+      return expiryDate <= reminderDate && expiryDate >= new Date();
+    });
+
+    res.json(expiringSoon);
   } catch (error) {
-    console.error('Error bulk adding insurance data:', error);
-    res.status(500).json({ error: 'Failed to bulk add entries' });
+    console.error('Error getting expiring entries:', error);
+    res.status(500).json({ error: 'Failed to get expiring entries' });
   }
 });
 

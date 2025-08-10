@@ -1,70 +1,201 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import {
-  LayoutDashboard,
-  Upload,
-  Settings,
-  FileText,
-  Shield,
-  LogOut
-} from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import toast from 'react-hot-toast';
+import { LogOut, Home, Upload, FileText, Settings, Shield, User } from 'lucide-react';
 
 const Navbar = () => {
+  const { isAuthenticated, logout, user } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useAuth();
 
   const handleLogout = () => {
     if (window.confirm('Are you sure you want to logout?')) {
       logout();
-      toast.success('Logged out successfully');
+      navigate('/login');
     }
   };
 
-  const navItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/upload', label: 'Upload', icon: Upload },
-    { path: '/settings', label: 'Settings', icon: Settings },
-    { path: '/logs', label: 'Logs', icon: FileText }
-  ];
+  if (!isAuthenticated) return null;
 
   return (
-    <nav className="bg-white shadow-lg border-b">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center space-x-2">
-            <Shield className="h-8 w-8 text-blue-600" />
-            <span className="text-xl font-bold text-gray-800">Mavrix Insurance</span>
-            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">By Shivam</span>
+    <nav style={{
+      background: 'white',
+      color: '#333',
+      padding: '1rem 2rem',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+      borderBottom: '1px solid #e0e0e0'
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <Shield size={32} color="#2563eb" />
+        <div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#333' }}>
+            InsureTrack
           </div>
-
-          <div className="flex items-center space-x-1">
-            {navItems.map(({ path, label, icon: Icon }) => (
-              <Link
-                key={path}
-                to={path}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${location.pathname === path
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-              >
-                <Icon className="h-4 w-4" />
-                <span className="hidden sm:inline">{label}</span>
-              </Link>
-            ))}
-            
-            {/* Logout Button */}
-            <button
-              onClick={handleLogout}
-              className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors text-red-600 hover:bg-red-50"
-              title="Logout"
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Logout</span>
-            </button>
+          <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '-2px' }}>
+            Insurance Management System
           </div>
         </div>
+      </div>
+      
+      <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+        <Link to="/" style={{ 
+          color: location.pathname === '/' ? '#2563eb' : '#666', 
+          textDecoration: 'none', 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '0.5rem',
+          fontWeight: location.pathname === '/' ? '600' : '500',
+          padding: '0.5rem 1rem',
+          borderRadius: '6px',
+          background: location.pathname === '/' ? '#eff6ff' : 'transparent',
+          transition: 'all 0.3s ease'
+        }}
+        onMouseEnter={(e) => {
+          if (location.pathname !== '/') {
+            e.target.style.background = '#f8fafc';
+            e.target.style.color = '#2563eb';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (location.pathname !== '/') {
+            e.target.style.background = 'transparent';
+            e.target.style.color = '#666';
+          }
+        }}
+        >
+          <Home size={20} />
+          Dashboard
+        </Link>
+        <Link to="/upload" style={{ 
+          color: location.pathname === '/upload' ? '#2563eb' : '#666', 
+          textDecoration: 'none', 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '0.5rem',
+          padding: '0.5rem 1rem',
+          borderRadius: '6px',
+          background: location.pathname === '/upload' ? '#eff6ff' : 'transparent',
+          fontWeight: location.pathname === '/upload' ? '600' : '500',
+          transition: 'all 0.3s ease'
+        }}
+        onMouseEnter={(e) => {
+          if (location.pathname !== '/upload') {
+            e.target.style.background = '#f8fafc';
+            e.target.style.color = '#2563eb';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (location.pathname !== '/upload') {
+            e.target.style.background = 'transparent';
+            e.target.style.color = '#666';
+          }
+        }}
+        >
+          <Upload size={20} />
+          Upload
+        </Link>
+        <Link to="/logs" style={{ 
+          color: location.pathname === '/logs' ? '#2563eb' : '#666', 
+          textDecoration: 'none', 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '0.5rem',
+          padding: '0.5rem 1rem',
+          borderRadius: '6px',
+          background: location.pathname === '/logs' ? '#eff6ff' : 'transparent',
+          fontWeight: location.pathname === '/logs' ? '600' : '500',
+          transition: 'all 0.3s ease'
+        }}
+        onMouseEnter={(e) => {
+          if (location.pathname !== '/logs') {
+            e.target.style.background = '#f8fafc';
+            e.target.style.color = '#2563eb';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (location.pathname !== '/logs') {
+            e.target.style.background = 'transparent';
+            e.target.style.color = '#666';
+          }
+        }}
+        >
+          <FileText size={20} />
+          Logs
+        </Link>
+        <Link to="/settings" style={{ 
+          color: location.pathname === '/settings' ? '#2563eb' : '#666', 
+          textDecoration: 'none', 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '0.5rem',
+          padding: '0.5rem 1rem',
+          borderRadius: '6px',
+          background: location.pathname === '/settings' ? '#eff6ff' : 'transparent',
+          fontWeight: location.pathname === '/settings' ? '600' : '500',
+          transition: 'all 0.3s ease'
+        }}
+        onMouseEnter={(e) => {
+          if (location.pathname !== '/settings') {
+            e.target.style.background = '#f8fafc';
+            e.target.style.color = '#2563eb';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (location.pathname !== '/settings') {
+            e.target.style.background = 'transparent';
+            e.target.style.color = '#666';
+          }
+        }}
+        >
+          <Settings size={20} />
+          Settings
+        </Link>
+        
+        {/* User Info */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          padding: '0.5rem 1rem',
+          background: '#f8fafc',
+          borderRadius: '6px',
+          border: '1px solid #e2e8f0'
+        }}>
+          <User size={16} color="#64748b" />
+          <span style={{ fontSize: '0.9rem', color: '#374151', fontWeight: '500' }}>
+            {user?.username || 'Admin'}
+          </span>
+        </div>
+        
+        <button 
+          onClick={handleLogout}
+          style={{ 
+            background: 'none', 
+            border: 'none', 
+            color: '#666', 
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.5rem 1rem',
+            borderRadius: '6px',
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.background = '#fef2f2';
+            e.target.style.color = '#dc2626';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.background = 'none';
+            e.target.style.color = '#666';
+          }}
+        >
+          <LogOut size={20} />
+          Logout
+        </button>
       </div>
     </nav>
   );

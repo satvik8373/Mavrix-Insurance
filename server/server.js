@@ -1,193 +1,116 @@
 const express = require('express');
 const cors = require('cors');
-const cron = require('node-cron');
 const path = require('path');
-const fs = require('fs');
-const config = require('./config');
-
-const emailer = require('./emailer');
-const database = require('./database');
-const routes = require('./routes');
-
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-});
-
-// Handle uncaught exceptions
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
-});
+require('dotenv').config();
 
 const app = express();
-const PORT = config.port;
+const PORT = process.env.PORT || 5000;
+
+// Database connection
+const database = require('./config/database');
 
 // Middleware
-app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// File paths for data persistence (fallback)
-const DATA_DIR = path.join(__dirname, 'data');
-const INSURANCE_DATA_FILE = path.join(DATA_DIR, 'insurance.json');
-const EMAIL_LOGS_FILE = path.join(DATA_DIR, 'email-logs.json');
+// CORS configuration for production
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? [
+        'https://your-client-url.vercel.app',
+        'https://your-client-url.vercel.app',
+        'http://localhost:3000'
+      ]
+    : ['http://localhost:3000'],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
 
-// Ensure data directory exists
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+app.use(cors(corsOptions));
+
+// Routes
+app.use('/api/insurance', require('./routes/insurance'));
+app.use('/api/email', require('./routes/email'));
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/upload', require('./routes/upload'));
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// Serve static files in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../client/build')));
+  
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+  });
 }
 
-// Load data from files (fallback)
-let insuranceData = [];
-let emailLogs = [];
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Server error:', err.stack);
+  res.status(500).json({ 
+    error: 'Something went wrong!',
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
+  });
+});
 
-const loadData = () => {
+// Connect to database and start server
+async function startServer() {
   try {
-    // Load insurance data
-    if (fs.existsSync(INSURANCE_DATA_FILE)) {
-      const data = fs.readFileSync(INSURANCE_DATA_FILE, 'utf8');
-      insuranceData = JSON.parse(data);
-      console.log(`Loaded ${insuranceData.length} insurance entries from file`);
-    }
-
-    // Load email logs
-    if (fs.existsSync(EMAIL_LOGS_FILE)) {
-      const data = fs.readFileSync(EMAIL_LOGS_FILE, 'utf8');
-      emailLogs = JSON.parse(data);
-      console.log(`Loaded ${emailLogs.length} email logs from file`);
-    }
-  } catch (error) {
-    console.error('Error loading data:', error);
-  }
-};
-
-const saveInsuranceData = () => {
-  try {
-    fs.writeFileSync(INSURANCE_DATA_FILE, JSON.stringify(insuranceData, null, 2));
-  } catch (error) {
-    console.error('Error saving insurance data:', error);
-  }
-};
-
-const saveEmailLogs = () => {
-  try {
-    fs.writeFileSync(EMAIL_LOGS_FILE, JSON.stringify(emailLogs, null, 2));
-  } catch (error) {
-    console.error('Error saving email logs:', error);
-  }
-};
-
-// Initialize database and load existing data on startup
-let useDatabase = false;
-
-const initializeStorage = async () => {
-  try {
-    useDatabase = await database.connect();
-
-    if (useDatabase) {
-      console.log('Using MongoDB for data storage');
-      // Load data from MongoDB
-      insuranceData = await database.getInsuranceData();
-      emailLogs = await database.getEmailLogs();
-      console.log(`Loaded ${insuranceData.length} insurance entries from MongoDB`);
-      console.log(`Loaded ${emailLogs.length} email logs from MongoDB`);
+    const dbConnected = await database.connect();
+    
+    if (dbConnected) {
+      console.log('✅ Connected to MongoDB successfully');
     } else {
-      console.log('Using file-based storage');
-      loadData();
+      console.error('❌ Failed to connect to MongoDB. Server will start with limited functionality.');
     }
-  } catch (error) {
-    console.error('Error initializing storage:', error);
-    console.log('Falling back to file-based storage');
-    useDatabase = false;
-    loadData();
-  }
-};
 
-// Mount API routes
-app.use('/api', routes);
+    app.listen(PORT, () => {
+      console.log(`🚀 Insurance Alert Server running on port ${PORT}`);
+      console.log(`📧 Email notifications: ${process.env.ENABLE_EMAIL === 'true' ? 'Enabled' : 'Disabled'}`);
+      console.log(`🔐 Authentication: ${process.env.ENABLE_AUTH === 'true' ? 'Enabled' : 'Disabled'}`);
+      console.log(`🗄️  Database: ${dbConnected ? 'Connected' : 'Disconnected'}`);
+      console.log(`📅 Reminder days: ${process.env.REMINDER_DAYS || 7}`);
+    });
 
-// Schedule daily reminder check at 8 AM
-cron.schedule('0 8 * * *', async () => {
-  console.log('Running daily reminder check...');
-  try {
-    const currentData = useDatabase ? await database.getInsuranceData() : insuranceData;
-    const results = await emailer.sendReminders(currentData);
-    console.log(`Reminder check completed. Sent ${results.filter(r => r.success).length} emails.`);
-
-    // Log the results
-    for (const result of results) {
-      const logEntry = {
-        id: Date.now().toString() + Math.random(),
-        timestamp: new Date().toISOString(),
-        recipient: result.email,
-        status: result.success ? 'success' : 'failed',
-        message: result.message,
-        error: result.error
-      };
-
-      if (useDatabase) {
-        await database.addEmailLog(logEntry);
-      } else {
-        emailLogs.unshift(logEntry);
+    // Schedule daily reminders at 9:00 AM
+    const cron = require('node-cron');
+    cron.schedule('0 9 * * *', async () => {
+      try {
+        console.log('📧 Running scheduled reminder check...');
+        const emailService = require('./services/emailService');
+        const result = await emailService.sendReminderEmails();
+        console.log(`✅ Reminder check completed: ${result.sent} sent, ${result.failed} failed`);
+      } catch (error) {
+        console.error('❌ Error in scheduled reminder check:', error);
       }
-    }
+    });
+    console.log('📅 Scheduled daily reminders at 9:00 AM');
 
-    if (!useDatabase) {
-      saveEmailLogs();
-    }
   } catch (error) {
-    console.error('Error in scheduled reminder check:', error);
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
   }
+}
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('\n🛑 Shutting down gracefully...');
+  await database.disconnect();
+  process.exit(0);
 });
 
-// Start server after initializing storage
-const startServer = async () => {
-  await initializeStorage();
-  
-  const server = app.listen(PORT, () => {
-    console.log(`InsureTrack server running on port ${PORT}`);
-    console.log(`Storage: ${useDatabase ? 'MongoDB' : 'File-based'}`);
-    console.log('Daily reminders scheduled for 8:00 AM');
-    console.log(`API available at http://localhost:${PORT}/api`);
-  });
-
-  return server;
-};
-
-// Start the server
-startServer().then(server => {
-  console.log('Server started successfully, setting up shutdown handlers...');
-  
-  // Graceful shutdown handlers
-  process.on('SIGINT', async () => {
-    console.log('\nSIGINT received, shutting down gracefully...');
-
-    if (useDatabase) {
-      await database.disconnect();
-    }
-
-    server.close(() => {
-      console.log('Server closed');
-      process.exit(0);
-    });
-  });
-
-  process.on('SIGTERM', async () => {
-    console.log('SIGTERM received, shutting down gracefully...');
-
-    if (useDatabase) {
-      await database.disconnect();
-    }
-
-    server.close(() => {
-      console.log('Server closed');
-      process.exit(0);
-    });
-  });
-
-  // Keep the process alive
-  console.log('Server is running and ready to accept connections...');
-}).catch(error => {
-  console.error('Failed to start server:', error);
-  process.exit(1);
+process.on('SIGTERM', async () => {
+  console.log('🛑 SIGTERM received, shutting down gracefully...');
+  await database.disconnect();
+  process.exit(0);
 });
 
+startServer();

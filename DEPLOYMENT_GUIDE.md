@@ -1,173 +1,196 @@
-# InsureTrack Deployment Guide
+# 🚀 Vercel Deployment Guide
 
-This guide covers deploying both the frontend and backend of the InsureTrack application.
+## 📋 Prerequisites
 
-## Frontend Deployment (Vercel)
+1. **Vercel Account**: Sign up at [vercel.com](https://vercel.com)
+2. **GitHub Repository**: Push your code to GitHub
+3. **MongoDB Atlas**: Set up a MongoDB database (free tier available)
 
-### Prerequisites
-- Vercel account
-- GitHub repository connected to Vercel
-- Node.js 18+ installed locally
+## 🔧 Environment Variables Setup
 
-### Steps
+### Server Environment Variables (Vercel Dashboard)
 
-1. **Push your code to GitHub** (if not already done)
-   ```bash
-   git add .
-   git commit -m "Fix Vercel build configuration"
-   git push origin main
-   ```
-
-2. **Connect to Vercel**
-   - Go to [vercel.com](https://vercel.com)
-   - Import your GitHub repository
-   - Vercel will automatically detect the configuration
-
-3. **Environment Variables**
-   Set these in your Vercel project settings:
-   ```
-   REACT_APP_API_URL=https://your-backend-url.com/api
-   ```
-
-4. **Build Configuration**
-   The `vercel.json` is already configured correctly:
-   - Build Command: `npm run build`
-   - Output Directory: `client/build`
-   - Install Command: `npm run install:all`
-
-5. **Deploy**
-   - Vercel will automatically build and deploy on each push
-   - The build should now succeed with the fixed configuration
-
-## Backend Deployment Options
-
-### Option 1: Railway (Recommended for beginners)
-
-1. **Sign up at [railway.app](https://railway.app)**
-2. **Connect your GitHub repository**
-3. **Configure environment variables** (copy from your `.env` file)
-4. **Deploy** - Railway will automatically detect Node.js
-
-### Option 2: Render
-
-1. **Sign up at [render.com](https://render.com)**
-2. **Create a new Web Service**
-3. **Connect your GitHub repository**
-4. **Configure:**
-   - Build Command: `npm install`
-   - Start Command: `npm start`
-   - Environment variables from your `.env`
-
-### Option 3: Heroku
-
-1. **Install Heroku CLI**
-2. **Login and create app:**
-   ```bash
-   heroku login
-   heroku create your-app-name
-   ```
-3. **Set environment variables:**
-   ```bash
-   heroku config:set MONGODB_URI=your_mongodb_uri
-   heroku config:set EMAIL_USER=your_email
-   heroku config:set EMAIL_PASS=your_app_password
-   ```
-4. **Deploy:**
-   ```bash
-   git push heroku main
-   ```
-
-## Environment Variables for Backend
-
-Create a `.env` file in your `server` directory with:
+Go to your server project settings in Vercel and add these environment variables:
 
 ```env
-# Server Configuration
-PORT=5000
-NODE_ENV=production
+# Database Configuration
+MONGODB_URI=mongodb+srv://your-username:your-password@your-cluster.mongodb.net/your-database
+DATABASE_NAME=insuretrack
 
-# MongoDB Configuration
-MONGODB_URI=your_mongodb_connection_string
+# Email Configuration (Optional - for production email sending)
+ENABLE_EMAIL=true
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your-app-password
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
 
-# Email Configuration
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USER=your_email@gmail.com
-EMAIL_PASS=your_app_password
-EMAIL_FROM=your_email@gmail.com
-
-# Reminder Configuration
+# Application Settings
+ENABLE_AUTH=true
 REMINDER_DAYS=7
-REMINDER_TIME=09:00
+NODE_ENV=production
 ```
 
-## Post-Deployment Steps
+### Client Environment Variables (Vercel Dashboard)
 
-1. **Update Frontend API URL**
-   - Set `REACT_APP_API_URL` in Vercel to point to your deployed backend
+Go to your client project settings in Vercel and add:
 
-2. **Test the Application**
-   - Verify insurance data upload works
-   - Test email reminder functionality
-   - Check that the PWA installs correctly
+```env
+REACT_APP_API_URL=https://your-server-url.vercel.app/api
+REACT_APP_ENVIRONMENT=production
+```
 
-3. **Monitor Logs**
-   - Check Vercel function logs for frontend issues
-   - Monitor backend logs for API issues
+## 🚀 Deployment Steps
 
-## Troubleshooting
+### Step 1: Deploy Server
 
-### Vercel Build Errors
+1. **Connect Repository**:
+   - Go to [vercel.com](https://vercel.com)
+   - Click "New Project"
+   - Import your GitHub repository
+   - Select the `server` folder
 
-- **Missing script errors**: Ensure all scripts in `package.json` exist
-- **Dependency issues**: Check that `install:all` completes successfully
-- **Build failures**: Verify the client builds locally with `npm run build`
+2. **Configure Build Settings**:
+   - **Framework Preset**: Node.js
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `.`
+   - **Install Command**: `npm install`
 
-### Backend Connection Issues
+3. **Set Environment Variables**:
+   - Add all server environment variables listed above
+   - Make sure to use your actual MongoDB connection string
 
-- **CORS errors**: Ensure your backend allows requests from your Vercel domain
-- **API timeouts**: Check that your backend is responding quickly
-- **Environment variables**: Verify all required variables are set
+4. **Deploy**:
+   - Click "Deploy"
+   - Wait for deployment to complete
+   - Copy the deployment URL (e.g., `https://your-server.vercel.app`)
+
+### Step 2: Update Client Configuration
+
+1. **Update API URL**:
+   - In `client/vercel.json`, replace `your-server-url.vercel.app` with your actual server URL
+   - In `client/src/context/DataContext.js`, update the fallback URL
+
+2. **Set Client Environment Variables**:
+   - Add `REACT_APP_API_URL` with your server URL
+
+### Step 3: Deploy Client
+
+1. **Connect Repository**:
+   - Create another Vercel project
+   - Import the same GitHub repository
+   - Select the `client` folder
+
+2. **Configure Build Settings**:
+   - **Framework Preset**: Create React App
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `build`
+   - **Install Command**: `npm install`
+
+3. **Set Environment Variables**:
+   - Add `REACT_APP_API_URL` with your server URL
+
+4. **Deploy**:
+   - Click "Deploy"
+   - Wait for deployment to complete
+
+## 🔗 Connecting Client to Server
+
+### Update vercel.json
+
+In your client's `vercel.json`, update the server URL:
+
+```json
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://your-actual-server-url.vercel.app/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
+```
+
+### Update DataContext.js
+
+In `client/src/context/DataContext.js`, update the fallback URL:
+
+```javascript
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? (process.env.REACT_APP_API_URL || 'https://your-actual-server-url.vercel.app/api')
+  : 'http://localhost:5000/api';
+```
+
+## 🧪 Testing Deployment
+
+1. **Test Server API**:
+   - Visit `https://your-server-url.vercel.app/api/insurance`
+   - Should return JSON data or empty array
+
+2. **Test Client**:
+   - Visit your client URL
+   - Try logging in and adding entries
+   - Check if data persists
+
+## 🔧 Troubleshooting
 
 ### Common Issues
 
-1. **Build succeeds but app doesn't work**: Check environment variables
-2. **API calls fail**: Verify backend URL and CORS configuration
-3. **PWA not installing**: Check that `manifest.json` and service worker are properly configured
+1. **CORS Errors**:
+   - Ensure server has proper CORS configuration
+   - Check that client URL is allowed in server CORS settings
 
-## Production Considerations
+2. **API Connection Issues**:
+   - Verify environment variables are set correctly
+   - Check server logs in Vercel dashboard
+   - Ensure MongoDB connection string is correct
 
-1. **Database**: Use MongoDB Atlas for production MongoDB hosting
-2. **Email**: Consider using a transactional email service like SendGrid
-3. **Monitoring**: Set up logging and monitoring for production
-4. **Backups**: Implement regular data backups
-5. **SSL**: Ensure HTTPS is enabled on both frontend and backend
+3. **Build Failures**:
+   - Check Node.js version compatibility
+   - Verify all dependencies are in package.json
+   - Check build logs in Vercel dashboard
 
-## Support
+### Environment Variable Checklist
+
+**Server Variables**:
+- ✅ `MONGODB_URI`
+- ✅ `DATABASE_NAME`
+- ✅ `NODE_ENV=production`
+
+**Client Variables**:
+- ✅ `REACT_APP_API_URL`
+
+## 📱 Post-Deployment
+
+1. **Set up Custom Domain** (Optional):
+   - Go to project settings in Vercel
+   - Add your custom domain
+   - Update DNS settings
+
+2. **Monitor Performance**:
+   - Use Vercel Analytics
+   - Monitor server logs
+   - Set up error tracking
+
+3. **Backup Strategy**:
+   - Set up MongoDB Atlas backups
+   - Consider data export functionality
+
+## 🎉 Success!
+
+Your Insurance Alert system is now deployed and accessible worldwide!
+
+- **Client URL**: `https://your-client.vercel.app`
+- **Server URL**: `https://your-server.vercel.app`
+- **API Endpoint**: `https://your-server.vercel.app/api`
+
+## 📞 Support
 
 If you encounter issues:
-1. Check the logs in your deployment platform
-2. Verify environment variables are set correctly
-3. Test locally to isolate deployment vs. code issues
-4. Check the platform's documentation for common issues
-
-## Quick Deploy Commands
-
-```bash
-# Frontend (Vercel - automatic)
-git push origin main
-
-# Backend (Railway example)
-railway up
-
-# Backend (Render - automatic)
-git push origin main
-
-# Backend (Heroku)
-git push heroku main
-```
-
-Your application should now deploy successfully on Vercel! The build error has been resolved by:
-1. Adding the missing `vercel-build` script
-2. Fixing the `vercel.json` configuration
-3. Ensuring the build command points to the correct script
+1. Check Vercel deployment logs
+2. Verify environment variables
+3. Test API endpoints directly
+4. Check MongoDB connection

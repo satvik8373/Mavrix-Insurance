@@ -1,308 +1,762 @@
 import React, { useState } from 'react';
-import { format, parseISO } from 'date-fns';
-import { Search, Edit, Trash2, Plus, Filter, Mail } from 'lucide-react';
 import { useData } from '../context/DataContext';
-import StatusBadge from '../components/StatusBadge';
-import EditModal from '../components/EditModal';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { FileText, Users, Calendar, AlertTriangle, Search, Filter, Plus, Car, Edit, Trash2, Mail } from 'lucide-react';
+import AddEntryModal from '../components/AddEntryModal';
+import EditEntryModal from '../components/EditEntryModal';
 import toast from 'react-hot-toast';
-import config from '../config';
 
 const Dashboard = () => {
-  const { insuranceData, getStatus, deleteInsuranceEntry, addEmailLog, loading } = useData();
+  const { insuranceData, emailLogs, deleteInsuranceEntry, updateInsuranceEntry, sendEmail } = useData();
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [editingEntry, setEditingEntry] = useState(null);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [sendingEmail, setSendingEmail] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('All Status');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedEntry, setSelectedEntry] = useState(null);
 
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+    }
+  }, [isAuthenticated, navigate]);
+
+  if (!isAuthenticated) return null;
+
+  // Calculate statistics
+  const totalEntries = insuranceData.length;
+  const activePolicies = insuranceData.filter(entry => {
+    const expiryDate = new Date(entry.expiryDate);
+    return expiryDate > new Date();
+  }).length;
+  
+  const expiringSoon = insuranceData.filter(entry => {
+    const expiryDate = new Date(entry.expiryDate);
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+    return expiryDate <= thirtyDaysFromNow && expiryDate > new Date();
+  }).length;
+  
+  const expiredPolicies = insuranceData.filter(entry => {
+    const expiryDate = new Date(entry.expiryDate);
+    return expiryDate <= new Date();
+  }).length;
+
+  // Filter data based on search and status
   const filteredData = insuranceData.filter(entry => {
-    const matchesSearch = entry.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = 
+      entry.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       entry.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      entry.vehicleNo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      entry.mobileNo?.includes(searchTerm);
-    const matchesStatus = statusFilter === 'all' || getStatus(entry.expiryDate) === statusFilter;
+      entry.policyNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      entry.phone?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    let matchesStatus = true;
+    if (statusFilter === 'Active') {
+      matchesStatus = new Date(entry.expiryDate) > new Date();
+    } else if (statusFilter === 'Expiring Soon') {
+      const expiryDate = new Date(entry.expiryDate);
+      const thirtyDaysFromNow = new Date();
+      thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+      matchesStatus = expiryDate <= thirtyDaysFromNow && expiryDate > new Date();
+    } else if (statusFilter === 'Expired') {
+      matchesStatus = new Date(entry.expiryDate) <= new Date();
+    }
+    
     return matchesSearch && matchesStatus;
   });
 
-  const handleEdit = (entry) => {
-    setEditingEntry(entry);
-    setShowEditModal(true);
-  };
-
-  const handleDelete = async (id, name) => {
-    if (window.confirm(`Are you sure you want to delete ${name}'s insurance record?`)) {
-      try {
-        console.log('Attempting to delete entry with ID:', id);
-        await deleteInsuranceEntry(id);
-        toast.success(`${name}'s insurance record deleted successfully`);
-      } catch (error) {
-        console.error('Error deleting entry:', error);
-        if (error.message.includes('Entry not found')) {
-          toast.error('Entry not found. It may have already been deleted.');
-        } else if (error.message.includes('Database not connected')) {
-          toast.error('Database connection error. Please try again.');
-        } else {
-          toast.error('Failed to delete entry. Please try again.');
-        }
-      }
+  const getStatusBadge = (expiryDate) => {
+    const date = new Date(expiryDate);
+    const today = new Date();
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+    
+    if (date <= today) {
+      return { text: 'Expired', color: '#dc2626', bg: '#fef2f2' };
+    } else if (date <= thirtyDaysFromNow) {
+      return { text: 'Expiring Soon', color: '#ea580c', bg: '#fff7ed' };
+    } else {
+      return { text: 'Active', color: '#16a34a', bg: '#f0fdf4' };
     }
   };
 
-
+  const handleEdit = (entry) => {
+    setSelectedEntry(entry);
+    setIsEditModalOpen(true);
+  };
 
   const handleSendEmail = async (entry) => {
-    setSendingEmail(entry.id);
-
     try {
-      const response = await fetch(`${config.apiBaseUrl}/send-single-reminder`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name: entry.name,
-          email: entry.email,
-          expiryDate: entry.expiryDate
-        })
-      });
+      // Load email template from settings
+      const savedTemplate = localStorage.getItem('insuretrack-email-template');
+      let emailTemplate = {
+        subject: 'Insurance Expiry Reminder - {policyNumber}',
+        body: `Hi {name},
 
-      if (response.ok) {
-        const result = await response.json();
+Your **{policyType}** insurance for **{policyNumber} ({policyType})** is expiring on **{expiryDate}**. Please renew it before the due date to avoid penalties.
 
-        // Add to email logs
-        addEmailLog({
-          recipient: entry.email,
-          status: result.success ? 'success' : 'failed',
-          message: result.message,
-          error: result.error
-        });
+**Vehicle Details:**
+- Vehicle Number: {policyNumber}
+- Vehicle Type: {policyType}
+- Owner: {name}
+- Mobile: {phone}
 
-        if (result.success) {
-          toast.success(`Email sent successfully to ${entry.name}`);
-        } else {
-          toast.error(`Failed to send email: ${result.message}`);
-        }
-      } else {
-        throw new Error('Failed to send email');
+**Important:** Don't let your insurance lapse. Renew today to stay protected!
+
+Thanks,
+InsureTrack Team
+
+This is an automated reminder. Please do not reply to this email.`
+      };
+
+      if (savedTemplate) {
+        emailTemplate = JSON.parse(savedTemplate);
       }
-    } catch (error) {
-      console.error('Error sending email:', error);
-      toast.error('Failed to send email');
 
-      // Log the error
-      addEmailLog({
-        recipient: entry.email,
-        status: 'failed',
-        message: 'Failed to send email',
-        error: error.message
-      });
-    } finally {
-      setSendingEmail(null);
+      // Process template with entry data
+      const processTemplate = (template) => {
+        const expiryDate = new Date(entry.expiryDate).toLocaleDateString();
+        const daysUntilExpiry = Math.ceil((new Date(entry.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
+        
+        return template
+          .replace(/\{name\}/g, entry.name || 'Customer')
+          .replace(/\{policyNumber\}/g, entry.policyNumber || 'N/A')
+          .replace(/\{policyType\}/g, entry.policyType || 'Insurance')
+          .replace(/\{expiryDate\}/g, expiryDate)
+          .replace(/\{phone\}/g, entry.phone || 'N/A')
+          .replace(/\{daysUntilExpiry\}/g, daysUntilExpiry);
+      };
+
+      const subject = processTemplate(emailTemplate.subject);
+      const message = processTemplate(emailTemplate.body);
+
+      // Create HTML version of the email
+      const htmlMessage = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insurance Expiry Reminder</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .email-container {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
+            border-bottom: 3px solid #2563eb;
+            padding-bottom: 25px;
+        }
+        .header h1 {
+            color: #2563eb;
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        .car-icon {
+            font-size: 24px;
+            color: #dc2626;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 25px;
+            color: #374151;
+        }
+        .main-message {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border-left: 5px solid #2563eb;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+        }
+        .main-message p {
+            margin: 0;
+            font-size: 16px;
+            line-height: 1.7;
+        }
+        .vehicle-details {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border: 1px solid #e2e8f0;
+        }
+        .vehicle-details h3 {
+            margin: 0 0 20px 0;
+            color: #1e293b;
+            font-size: 18px;
+            font-weight: 600;
+            border-bottom: 2px solid #cbd5e1;
+            padding-bottom: 10px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #64748b;
+            font-size: 14px;
+        }
+        .detail-value {
+            font-weight: 700;
+            color: #1e293b;
+            font-size: 14px;
+        }
+        .warning-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #f59e0b;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.1);
+        }
+        .warning-icon {
+            color: #d97706;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        .warning-text {
+            color: #92400e;
+            font-weight: 700;
+            margin: 0;
+            font-size: 16px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 35px;
+            padding-top: 25px;
+            border-top: 2px solid #e2e8f0;
+        }
+        .footer p {
+            margin: 5px 0;
+        }
+        .team-name {
+            font-weight: 700;
+            color: #2563eb;
+            font-size: 18px;
+        }
+        .footer-note {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 20px;
+            font-style: italic;
+        }
+        .highlight {
+            color: #2563eb;
+            font-weight: 700;
+        }
+        .days-remaining {
+            background: #dc2626;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>
+                <span class="car-icon">🚗</span>
+                Insurance Expiry Reminder
+            </h1>
+        </div>
+        
+        <div class="greeting">
+            Hi <span class="highlight">${entry.name || 'Customer'}</span>,
+        </div>
+        
+        <div class="main-message">
+            <p>
+                Your <span class="highlight">${entry.policyType || 'Insurance'}</span> insurance for 
+                <span class="highlight">${entry.policyNumber || 'N/A'}</span> 
+                is expiring on <span class="highlight">${new Date(entry.expiryDate).toLocaleDateString()}</span>
+                <span class="days-remaining">${Math.ceil((new Date(entry.expiryDate) - new Date()) / (1000 * 60 * 60 * 24))} days remaining</span>.
+            </p>
+            <p style="margin-top: 15px;">
+                Please renew it before the due date to avoid penalties and ensure continuous coverage.
+            </p>
+        </div>
+        
+        <div class="vehicle-details">
+            <h3>Vehicle Details:</h3>
+            <div class="detail-row">
+                <span class="detail-label">Vehicle Number:</span>
+                <span class="detail-value">${entry.policyNumber || 'N/A'}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Vehicle Type:</span>
+                <span class="detail-value">${entry.policyType || 'N/A'}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Owner:</span>
+                <span class="detail-value">${entry.name || 'N/A'}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Mobile:</span>
+                <span class="detail-value">${entry.phone || 'N/A'}</span>
+            </div>
+        </div>
+        
+        <div class="warning-box">
+            <span class="warning-icon">⚠️</span>
+            <p class="warning-text">Important: Don't let your insurance lapse. Renew today to stay protected!</p>
+        </div>
+        
+        <div class="footer">
+            <p>Thanks,</p>
+            <p class="team-name">InsureTrack Team</p>
+            <p class="footer-note">This is an automated reminder. Please do not reply to this email.</p>
+        </div>
+    </div>
+</body>
+</html>`;
+
+      // Send email using the existing sendEmail function with HTML
+      await sendEmail(entry.email, subject, message, htmlMessage);
+      toast.success(`Email sent successfully to ${entry.name}!`);
+    } catch (error) {
+      toast.error('Failed to send email');
     }
   };
 
-  const getStatusCounts = () => {
-    const counts = { active: 0, expiring: 0, expired: 0 };
-    insuranceData.forEach(entry => {
-      const status = getStatus(entry.expiryDate);
-      counts[status]++;
-    });
-    return counts;
+  const handleDelete = async (entry) => {
+    if (window.confirm('Are you sure you want to delete this entry?')) {
+      try {
+        await deleteInsuranceEntry(entry._id);
+        toast.success('Entry deleted successfully!');
+      } catch (error) {
+        toast.error('Failed to delete entry');
+      }
+    }
   };
 
-  const statusCounts = getStatusCounts();
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-3xl font-bold text-gray-900">Insurance Dashboard</h1>
-        <button
-          onClick={() => {
-            setEditingEntry(null);
-            setShowEditModal(true);
+    <div style={{ padding: '2rem', background: '#f8fafc', minHeight: '100vh' }}>
+      {/* Header */}
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        marginBottom: '2rem' 
+      }}>
+        <h1 style={{ 
+          fontSize: '2rem', 
+          fontWeight: 'bold', 
+          color: '#1e293b',
+          margin: 0
+        }}>
+          Insurance Dashboard
+        </h1>
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          style={{
+            background: '#2563eb',
+            color: 'white',
+            border: 'none',
+            padding: '0.75rem 1.5rem',
+            borderRadius: '8px',
+            fontSize: '0.9rem',
+            fontWeight: '600',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            transition: 'all 0.2s'
           }}
-          className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          onMouseEnter={(e) => e.target.style.background = '#1d4ed8'}
+          onMouseLeave={(e) => e.target.style.background = '#2563eb'}
         >
-          <Plus className="h-4 w-4" />
-          <span>Add New Entry</span>
+          <Plus size={16} />
+          Add New Entry
         </button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-500">Total Entries</h3>
-          <p className="text-2xl font-bold text-gray-900">{insuranceData.length}</p>
+      {/* Statistics Cards */}
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+        gap: '1.5rem', 
+        marginBottom: '2rem' 
+      }}>
+        <div style={{ 
+          background: 'white', 
+          padding: '1.5rem', 
+          borderRadius: '12px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ 
+              background: '#eff6ff', 
+              padding: '0.75rem', 
+              borderRadius: '8px' 
+            }}>
+              <FileText size={24} color="#2563eb" />
+            </div>
+            <div>
+              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1e293b' }}>
+                {totalEntries}
+              </div>
+              <div style={{ color: '#64748b', fontSize: '0.9rem' }}>
+                Total Entries
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-500">Active</h3>
-          <p className="text-2xl font-bold text-green-600">{statusCounts.active}</p>
+
+        <div style={{ 
+          background: 'white', 
+          padding: '1.5rem', 
+          borderRadius: '12px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ 
+              background: '#f0fdf4', 
+              padding: '0.75rem', 
+              borderRadius: '8px' 
+            }}>
+              <Users size={24} color="#16a34a" />
+            </div>
+            <div>
+              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#16a34a' }}>
+                {activePolicies}
+              </div>
+              <div style={{ color: '#64748b', fontSize: '0.9rem' }}>
+                Active
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-500">Expiring Soon</h3>
-          <p className="text-2xl font-bold text-yellow-600">{statusCounts.expiring}</p>
+
+        <div style={{ 
+          background: 'white', 
+          padding: '1.5rem', 
+          borderRadius: '12px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ 
+              background: '#fff7ed', 
+              padding: '0.75rem', 
+              borderRadius: '8px' 
+            }}>
+              <AlertTriangle size={24} color="#ea580c" />
+            </div>
+            <div>
+              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ea580c' }}>
+                {expiringSoon}
+              </div>
+              <div style={{ color: '#64748b', fontSize: '0.9rem' }}>
+                Expiring Soon
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-500">Expired</h3>
-          <p className="text-2xl font-bold text-red-600">{statusCounts.expired}</p>
+
+        <div style={{ 
+          background: 'white', 
+          padding: '1.5rem', 
+          borderRadius: '12px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          border: '1px solid #e2e8f0'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ 
+              background: '#fef2f2', 
+              padding: '0.75rem', 
+              borderRadius: '8px' 
+            }}>
+              <Calendar size={24} color="#dc2626" />
+            </div>
+            <div>
+              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#dc2626' }}>
+                {expiredPolicies}
+              </div>
+              <div style={{ color: '#64748b', fontSize: '0.9rem' }}>
+                Expired
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white p-4 rounded-lg shadow">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <input
-                type="text"
-                placeholder="Search by name, email, vehicle number, or mobile..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
+      {/* Search and Filter */}
+      <div style={{ 
+        background: 'white', 
+        padding: '1.5rem', 
+        borderRadius: '12px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        border: '1px solid #e2e8f0',
+        marginBottom: '1.5rem'
+      }}>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <div style={{ position: 'relative', flex: 1 }}>
+            <Search size={20} color="#64748b" style={{ 
+              position: 'absolute', 
+              left: '12px', 
+              top: '50%', 
+              transform: 'translateY(-50%)' 
+            }} />
+            <input
+              type="text"
+              placeholder="Search by name, email, vehicle number, or mobile..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '0.75rem 0.75rem 0.75rem 2.5rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '0.9rem',
+                outline: 'none'
+              }}
+            />
           </div>
-          <div className="flex items-center space-x-2">
-            <Filter className="h-4 w-4 text-gray-400" />
+          <div style={{ position: 'relative' }}>
+            <Filter size={20} color="#64748b" style={{ 
+              position: 'absolute', 
+              left: '12px', 
+              top: '50%', 
+              transform: 'translateY(-50%)' 
+            }} />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              style={{
+                padding: '0.75rem 0.75rem 0.75rem 2.5rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '0.9rem',
+                outline: 'none',
+                background: 'white',
+                cursor: 'pointer'
+              }}
             >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="expiring">Expiring Soon</option>
-              <option value="expired">Expired</option>
+              <option>All Status</option>
+              <option>Active</option>
+              <option>Expiring Soon</option>
+              <option>Expired</option>
             </select>
           </div>
         </div>
       </div>
 
       {/* Data Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Vehicle No
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Vehicle Type
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Name
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Mobile No
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Insurance Exp Date
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Email
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredData.length === 0 ? (
-                <tr>
-                  <td colSpan="8" className="px-6 py-12 text-center text-gray-500">
-                    {insuranceData.length === 0 ? 'No insurance data found. Upload an Excel file to get started.' : 'No entries match your search criteria.'}
-                  </td>
+      <div style={{ 
+        background: 'white', 
+        borderRadius: '12px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        border: '1px solid #e2e8f0',
+        overflow: 'hidden'
+      }}>
+        {filteredData.length === 0 ? (
+          <div style={{ 
+            padding: '3rem', 
+            textAlign: 'center', 
+            color: '#64748b' 
+          }}>
+            <Car size={48} color="#cbd5e1" style={{ marginBottom: '1rem' }} />
+            <div style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>
+              No insurance data found
+            </div>
+            <div style={{ fontSize: '0.9rem' }}>
+              Upload an Excel file to get started
+            </div>
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                  <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: '#374151' }}>VEHICLE NO</th>
+                  <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: '#374151' }}>VEHICLE TYPE</th>
+                  <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: '#374151' }}>NAME</th>
+                  <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: '#374151' }}>MOBILE NO</th>
+                  <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: '#374151' }}>INSURANCE EXP DATE</th>
+                  <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: '#374151' }}>EMAIL</th>
+                  <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: '#374151' }}>STATUS</th>
+                  <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: '#374151' }}>ACTIONS</th>
                 </tr>
-              ) : (
-                filteredData.map((entry) => (
-                  <tr key={entry.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {entry.vehicleNo || 'N/A'}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${entry.vehicleType === 'Two Wheeler'
-                        ? 'bg-blue-100 text-blue-800'
-                        : 'bg-purple-100 text-purple-800'
-                        }`}>
-                        {entry.vehicleType || 'N/A'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {entry.name || 'N/A'}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {entry.mobileNo || 'N/A'}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {entry.expiryDate ? format(parseISO(entry.expiryDate), 'MMM dd, yyyy') : 'N/A'}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {entry.email || 'N/A'}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <StatusBadge status={getStatus(entry.expiryDate)} />
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleSendEmail(entry)}
-                          disabled={sendingEmail === entry.id}
-                          className={`relative ${sendingEmail === entry.id
-                            ? 'text-gray-400 cursor-not-allowed'
-                            : 'text-green-600 hover:text-green-900'
-                            } transition-colors`}
-                          title={sendingEmail === entry.id ? 'Sending email...' : 'Send reminder email'}
-                        >
-                          <Mail className={`h-4 w-4 ${sendingEmail === entry.id ? 'animate-pulse' : ''}`} />
-                          {sendingEmail === entry.id && (
-                            <span className="absolute -top-1 -right-1 h-2 w-2 bg-yellow-400 rounded-full animate-ping"></span>
-                          )}
-                        </button>
-                        <button
-                          onClick={() => handleEdit(entry)}
-                          className="text-blue-600 hover:text-blue-900"
-                          title="Edit entry"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(entry.id, entry.name)}
-                          className="text-red-600 hover:text-red-900"
-                          title="Delete entry"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+              </thead>
+              <tbody>
+                                 {filteredData.map((entry, index) => {
+                   const status = getStatusBadge(entry.expiryDate);
+                   return (
+                     <tr 
+                       key={entry._id} 
+                       style={{ 
+                         borderBottom: '1px solid #f1f5f9',
+                         animation: `fadeInUp 0.3s ease ${index * 0.05}s both`
+                       }}
+                     >
+                      <td style={{ padding: '1rem', color: '#374151' }}>{entry.policyNumber || 'N/A'}</td>
+                      <td style={{ padding: '1rem', color: '#374151' }}>{entry.policyType || 'N/A'}</td>
+                      <td style={{ padding: '1rem', color: '#374151', fontWeight: '500' }}>{entry.name || 'N/A'}</td>
+                      <td style={{ padding: '1rem', color: '#374151' }}>{entry.phone || 'N/A'}</td>
+                      <td style={{ padding: '1rem', color: '#374151' }}>
+                        {entry.expiryDate ? new Date(entry.expiryDate).toLocaleDateString() : 'N/A'}
+                      </td>
+                      <td style={{ padding: '1rem', color: '#374151' }}>{entry.email || 'N/A'}</td>
+                      <td style={{ padding: '1rem' }}>
+                        <span style={{
+                          padding: '0.25rem 0.75rem',
+                          borderRadius: '20px',
+                          fontSize: '0.8rem',
+                          fontWeight: '500',
+                          background: status.bg,
+                          color: status.color
+                        }}>
+                          {status.text}
+                        </span>
+                      </td>
+                                             <td style={{ padding: '1rem' }}>
+                         <div style={{ display: 'flex', gap: '0.5rem' }}>
+                           <button 
+                             onClick={() => handleEdit(entry)}
+                             style={{
+                               background: '#eff6ff',
+                               border: 'none',
+                               padding: '0.5rem',
+                               borderRadius: '6px',
+                               cursor: 'pointer',
+                               color: '#2563eb',
+                               transition: 'all 0.2s ease'
+                             }}
+                             onMouseEnter={(e) => {
+                               e.target.style.background = '#dbeafe';
+                               e.target.style.transform = 'scale(1.05)';
+                             }}
+                             onMouseLeave={(e) => {
+                               e.target.style.background = '#eff6ff';
+                               e.target.style.transform = 'scale(1)';
+                             }}
+                             title="Edit Entry"
+                           >
+                             <Edit size={16} />
+                           </button>
+                           <button 
+                             onClick={() => handleSendEmail(entry)}
+                             style={{
+                               background: '#f0fdf4',
+                               border: 'none',
+                               padding: '0.5rem',
+                               borderRadius: '6px',
+                               cursor: 'pointer',
+                               color: '#16a34a',
+                               transition: 'all 0.2s ease'
+                             }}
+                             onMouseEnter={(e) => {
+                               e.target.style.background = '#dcfce7';
+                               e.target.style.transform = 'scale(1.05)';
+                             }}
+                             onMouseLeave={(e) => {
+                               e.target.style.background = '#f0fdf4';
+                               e.target.style.transform = 'scale(1)';
+                             }}
+                             title="Send Email Automatically"
+                           >
+                             <Mail size={16} />
+                           </button>
+                           <button 
+                             onClick={() => handleDelete(entry)}
+                             style={{
+                               background: '#fef2f2',
+                               border: 'none',
+                               padding: '0.5rem',
+                               borderRadius: '6px',
+                               cursor: 'pointer',
+                               color: '#dc2626',
+                               transition: 'all 0.2s ease'
+                             }}
+                             onMouseEnter={(e) => {
+                               e.target.style.background = '#fecaca';
+                               e.target.style.transform = 'scale(1.05)';
+                             }}
+                             onMouseLeave={(e) => {
+                               e.target.style.background = '#fef2f2';
+                               e.target.style.transform = 'scale(1)';
+                             }}
+                             title="Delete Entry"
+                           >
+                             <Trash2 size={16} />
+                           </button>
+                         </div>
+                       </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+                 )}
+       </div>
 
-      {showEditModal && (
-        <EditModal
-          entry={editingEntry}
-          onClose={() => setShowEditModal(false)}
-        />
-      )}
-    </div>
-  );
-};
+       {/* Add Entry Modal */}
+       <AddEntryModal 
+         isOpen={isModalOpen} 
+         onClose={() => setIsModalOpen(false)} 
+       />
+
+       {/* Edit Entry Modal */}
+       <EditEntryModal 
+         isOpen={isEditModalOpen} 
+         onClose={() => setIsEditModalOpen(false)}
+         entry={selectedEntry}
+       />
+
+               <style>{`
+         @keyframes fadeInUp {
+           from { 
+             opacity: 0;
+             transform: translateY(20px);
+           }
+           to { 
+             opacity: 1;
+             transform: translateY(0);
+           }
+         }
+       `}</style>
+     </div>
+   );
+ };
 
 export default Dashboard;

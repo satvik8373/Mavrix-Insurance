@@ -1,211 +1,219 @@
-# InsureTrack - Admin PWA for Auto Email Insurance Reminders
+# 🚀 InsureTrack - Insurance Management System
 
-A modern, responsive Progressive Web Application (PWA) designed for administrators to manage car insurance expiry data and automatically send email reminders to customers via Gmail.
+A modern, full-stack insurance management system built with React, Node.js, and MongoDB. Manage insurance policies, send automated reminders, and track expiry dates with a beautiful, responsive interface.
 
-## 🚀 Features
+## ✨ Features
 
-- **Excel Upload**: Upload and parse .xlsx files with insurance data
-- **Admin Dashboard**: View, edit, and manage all insurance entries
-- **Automated Gmail Reminders**: Send email reminders before insurance expiry
-- **PWA Support**: Installable as a native app on mobile and desktop
-- **Responsive Design**: Modern UI that works on all devices
-- **Real-time Status Tracking**: Color-coded status indicators (Active, Expiring Soon, Expired)
-- **Email Logs**: Monitor email sending activity and troubleshoot issues
-- **Configurable Settings**: Customize reminder timing and email configuration
-
-## 📋 Requirements
-
-### Excel File Format
-Your Excel file should contain these columns:
-- **Name** - Full name of the customer
-- **Email** - Valid email address  
-- **ExpiryDate** - Insurance expiry date (YYYY-MM-DD or MM/DD/YYYY)
+- **📊 Dashboard**: Comprehensive overview with statistics and data visualization
+- **📝 Policy Management**: Add, edit, and delete insurance entries
+- **📧 Email Automation**: Send beautiful HTML email reminders automatically
+- **🔐 Authentication**: Secure login with 24-hour session persistence
+- **📁 File Upload**: Bulk import data from Excel files
+- **📱 Responsive Design**: Works perfectly on desktop and mobile devices
+- **🌐 Real-time Updates**: Instant data synchronization across the application
 
 ## 🛠️ Tech Stack
 
-**Frontend:**
-- React.js 18
-- Tailwind CSS
-- React Router
-- SheetJS (xlsx)
-- React Hot Toast
-- Lucide React Icons
-- Date-fns
+### Frontend
+- **React 18** - Modern UI framework
+- **React Router** - Client-side routing
+- **Lucide React** - Beautiful icons
+- **React Hot Toast** - User notifications
+- **XLSX** - Excel file processing
 
-**Backend:**
-- Node.js + Express
-- Nodemailer (Gmail integration)
-- Node-cron (scheduled tasks)
-- CORS
+### Backend
+- **Node.js** - Server runtime
+- **Express.js** - Web framework
+- **MongoDB** - Database
+- **Nodemailer** - Email service
+- **Multer** - File upload handling
+- **Node-cron** - Scheduled tasks
 
-**PWA:**
-- Service Worker
-- Web App Manifest
-- Offline caching
+## 🚀 Quick Start
 
-## 📦 Installation & Setup
+### Prerequisites
+- Node.js 18+ 
+- MongoDB database
+- Git
 
-### 1. Clone the Repository
-```bash
-git clone <repository-url>
-cd insuretrack-pwa
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <your-repo-url>
+   cd INSURANCE-ALERT
+   ```
+
+2. **Install dependencies**
+   ```bash
+   # Install server dependencies
+   cd server
+   npm install
+   
+   # Install client dependencies
+   cd ../client
+   npm install
+   ```
+
+3. **Environment Setup**
+   
+   Create `.env` file in the server directory:
+   ```env
+   MONGODB_URI=mongodb://localhost:27017/insuretrack
+   DATABASE_NAME=insuretrack
+   ENABLE_EMAIL=false
+   ENABLE_AUTH=true
+   REMINDER_DAYS=7
+   ```
+
+4. **Start the application**
+   ```bash
+   # Start server (from server directory)
+   npm start
+   
+   # Start client (from client directory)
+   npm start
+   ```
+
+5. **Access the application**
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:5000
+   - Login: Use password `Ssd@2004`
+
+## 📦 Deployment
+
+### Vercel Deployment (Recommended)
+
+See [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) for detailed Vercel deployment instructions.
+
+### Quick Deployment Steps
+
+1. **Deploy Server**
+   - Push code to GitHub
+   - Connect to Vercel
+   - Set environment variables
+   - Deploy
+
+2. **Deploy Client**
+   - Create new Vercel project
+   - Set `REACT_APP_API_URL` environment variable
+   - Deploy
+
+3. **Update Configuration**
+   - Update server URL in client configuration
+   - Test the application
+
+## 📁 Project Structure
+
+```
+INSURANCE-ALERT/
+├── client/                 # React frontend
+│   ├── src/
+│   │   ├── components/     # Reusable components
+│   │   ├── context/        # React context providers
+│   │   ├── pages/          # Page components
+│   │   └── config/         # Configuration files
+│   ├── public/             # Static assets
+│   └── package.json
+├── server/                 # Node.js backend
+│   ├── config/             # Database configuration
+│   ├── routes/             # API routes
+│   ├── services/           # Business logic
+│   └── package.json
+├── DEPLOYMENT_GUIDE.md     # Deployment instructions
+└── README.md
 ```
 
-### 2. Install Frontend Dependencies
-```bash
-npm install
-```
+## 🔧 Configuration
 
-### 3. Install Backend Dependencies
-```bash
-cd server
-npm install
-```
+### Environment Variables
 
-### 4. Environment Configuration
-```bash
-cd server
-cp .env.example .env
-```
-
-Edit the `.env` file with your Gmail credentials:
+**Server (.env)**
 ```env
-PORT=5000
+MONGODB_URI=mongodb://localhost:27017/insuretrack
+DATABASE_NAME=insuretrack
+ENABLE_EMAIL=true
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your-app-password
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-EMAIL_USER=your-email@gmail.com
-EMAIL_PASSWORD=your-gmail-app-password
+ENABLE_AUTH=true
 REMINDER_DAYS=7
 ```
 
-### 5. Gmail App Password Setup
-1. Enable 2-Factor Authentication on your Gmail account
-2. Go to Google Account Settings > Security > App Passwords
-3. Generate a new app password for "Mail"
-4. Use this app password in your `.env` file (not your regular Gmail password)
-
-## 🚀 Running the Application
-
-### Development Mode
-
-**Start the backend server:**
-```bash
-cd server
-npm run dev
-```
-Server will run on http://localhost:5000
-
-**Start the frontend (in a new terminal):**
-```bash
-npm start
-```
-Frontend will run on http://localhost:3000
-
-### Production Build
-```bash
-npm run build
+**Client (.env)**
+```env
+REACT_APP_API_URL=http://localhost:5000/api
 ```
 
-## 📱 PWA Installation
+### Email Configuration
 
-1. Open the app in Chrome/Edge
-2. Look for the "Install" button in the address bar
-3. Click to install as a native app
-4. The app will appear in your device's app drawer/start menu
+1. **Enable Gmail SMTP**
+   - Use Gmail App Password
+   - Enable 2-factor authentication
+   - Generate app password
 
-## 🔧 Usage Guide
+2. **Test Email Setup**
+   - Check email service logs
+   - Verify SMTP settings
+   - Test email sending
 
-### 1. Upload Insurance Data
-- Navigate to the Upload page
-- Drag & drop or select an Excel file (.xlsx)
-- Preview the parsed data
-- Confirm to import into the system
+## 📊 API Endpoints
 
-### 2. Manage Dashboard
-- View all insurance entries in a table format
-- Use search and filters to find specific entries
-- Edit or delete entries as needed
-- Add new entries manually
+### Insurance Management
+- `GET /api/insurance` - Get all insurance entries
+- `POST /api/insurance` - Add new entry
+- `PUT /api/insurance/:id` - Update entry
+- `DELETE /api/insurance/:id` - Delete entry
 
-### 3. Configure Settings
-- Set reminder days (default: 7 days before expiry)
-- Configure Gmail SMTP settings
-- View email template preview
+### Email Management
+- `POST /api/email/send` - Send email
+- `GET /api/email/logs` - Get email logs
+- `POST /api/email/reminders` - Send reminder emails
 
-### 4. Monitor Email Logs
-- View all email sending attempts
-- Filter by status (success/failed) and date
-- Troubleshoot email delivery issues
+### Authentication
+- `POST /api/auth/login` - User login
+- `GET /api/auth/status` - Check auth status
 
-## 📧 Email Automation
+### File Upload
+- `POST /api/upload/excel` - Upload Excel file
+- `GET /api/upload/template` - Download template
 
-The system automatically:
-- Runs a daily check at 8:00 AM
-- Identifies insurance policies expiring in X days (configurable)
-- Sends personalized email reminders
-- Logs all email activity for monitoring
+## 🎨 Features in Detail
 
-### Email Template
-```
-Subject: 🚗 Insurance Expiry Reminder
+### Dashboard
+- **Statistics Cards**: Total entries, active policies, expiring soon, expired
+- **Search & Filter**: Find entries by name, email, policy number
+- **Status Filtering**: Filter by active, expiring soon, or expired
+- **Bulk Actions**: Select multiple entries for operations
 
-Hi [Customer Name],
+### Email System
+- **Template Management**: Customize email templates in settings
+- **Auto-send**: Send emails automatically without modals
+- **HTML Templates**: Beautiful, responsive email design
+- **Variable Replacement**: Dynamic content with placeholders
 
-Your car insurance is expiring on [Expiry Date]. Please renew it before the due date to avoid penalties.
+### Data Management
+- **Excel Import**: Bulk upload from Excel files
+- **Data Export**: Download data in various formats
+- **Real-time Sync**: Instant updates across all components
+- **Offline Support**: localStorage fallback when server unavailable
 
-Thanks,
-InsureTrack Team
-```
+## 🔒 Security Features
 
-## 🎨 UI Features
+- **Authentication**: Password-based login system
+- **Session Management**: 24-hour persistent sessions
+- **Input Validation**: Server-side validation for all inputs
+- **CORS Protection**: Configured for production deployment
+- **Error Handling**: Comprehensive error management
 
-- **Status Badges**: 
-  - 🟢 Active (>7 days until expiry)
-  - 🟡 Expiring Soon (≤7 days until expiry)
-  - 🔴 Expired (past expiry date)
+## 🚀 Performance Optimizations
 
-- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile
-- **Toast Notifications**: Real-time feedback for user actions
-- **Modal Forms**: Clean interface for adding/editing entries
-- **Search & Filter**: Quick access to specific data
-
-## 🔒 Security Considerations
-
-- Use Gmail App Passwords (never regular passwords)
-- Environment variables for sensitive configuration
-- Input validation and sanitization
-- CORS configuration for API security
-
-## 🐛 Troubleshooting
-
-### Email Not Sending
-1. Verify Gmail App Password is correct
-2. Check 2FA is enabled on Gmail account
-3. Ensure SMTP settings are correct
-4. Check email logs for error details
-
-### Excel Upload Issues
-1. Ensure file is .xlsx format
-2. Verify required columns exist (Name, Email, ExpiryDate)
-3. Check date format is valid
-4. Ensure email addresses are properly formatted
-
-### PWA Installation
-1. Use HTTPS in production
-2. Ensure service worker is registered
-3. Check manifest.json is accessible
-4. Use supported browsers (Chrome, Edge, Firefox)
-
-## 📈 Future Enhancements
-
-- [ ] SMS reminders via Twilio
-- [ ] Google Sheets integration
-- [ ] PDF report exports
-- [ ] Multi-language support
-- [ ] Database integration (MongoDB/PostgreSQL)
-- [ ] User authentication system
-- [ ] Email template customization
-- [ ] Bulk email operations
+- **Lazy Loading**: Components loaded on demand
+- **Efficient Queries**: Optimized database queries
+- **Caching**: localStorage for offline functionality
+- **Compression**: Gzip compression for API responses
+- **CDN Ready**: Static assets optimized for CDN
 
 ## 🤝 Contributing
 
@@ -215,14 +223,25 @@ InsureTrack Team
 4. Test thoroughly
 5. Submit a pull request
 
-## 📄 License
+## 📝 License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 📞 Support
+## 🆘 Support
 
-For support and questions, please create an issue in the repository or contact the development team.
+For support and questions:
+1. Check the [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)
+2. Review the troubleshooting section
+3. Check Vercel deployment logs
+4. Verify environment variables
+
+## 🎉 Acknowledgments
+
+- **Vercel** for hosting platform
+- **MongoDB Atlas** for database hosting
+- **React Community** for excellent documentation
+- **Lucide** for beautiful icons
 
 ---
 
-**InsureTrack** - Keeping your customers protected, one reminder at a time! 🚗✉️# Mavrix-Insurance
+**Built with ❤️ for efficient insurance management**

@@ -1,7 +1,0 @@
-server/
-node_modules/
-.git/
-*.log
-.env
-.vscode/
-.kiro/

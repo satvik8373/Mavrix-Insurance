@@ -1,55 +1,53 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import Navbar from './components/Navbar';
 import Dashboard from './pages/Dashboard';
 import Upload from './pages/Upload';
-import Settings from './pages/Settings';
 import Logs from './pages/Logs';
-import Navbar from './components/Navbar';
+import Settings from './pages/Settings';
 import Login from './components/Login';
+import { AuthProvider } from './context/AuthContext';
 import { DataProvider } from './context/DataContext';
-import { AuthProvider, useAuth } from './context/AuthContext';
-
-const AppContent = () => {
-  const { isAuthenticated, isLoading, login } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <Login onLogin={login} />;
-  }
-
-  return (
-    <DataProvider>
-      <Router>
-        <div className="min-h-screen bg-gray-50">
-          <Navbar />
-          <main className="container mx-auto px-4 py-8">
-            <Routes>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/upload" element={<Upload />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/logs" element={<Logs />} />
-            </Routes>
-          </main>
-          <Toaster position="top-right" />
-        </div>
-      </Router>
-    </DataProvider>
-  );
-};
+import './App.css';
 
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <DataProvider>
+        <Router>
+          <div className="App">
+            <Toaster position="top-right" />
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/" element={
+                <>
+                  <Navbar />
+                  <Dashboard />
+                </>
+              } />
+              <Route path="/upload" element={
+                <>
+                  <Navbar />
+                  <Upload />
+                </>
+              } />
+              <Route path="/logs" element={
+                <>
+                  <Navbar />
+                  <Logs />
+                </>
+              } />
+              <Route path="/settings" element={
+                <>
+                  <Navbar />
+                  <Settings />
+                </>
+              } />
+            </Routes>
+          </div>
+        </Router>
+      </DataProvider>
     </AuthProvider>
   );
 }
