@@ -99,6 +99,38 @@ Server will run on http://localhost:5000
 ```bash
 npm start
 ```
+
+## 🚀 Deployment to Vercel
+
+### Quick Deployment
+
+**For Windows users:**
+```bash
+deploy.bat
+```
+
+**For Mac/Linux users:**
+```bash
+chmod +x deploy.sh
+./deploy.sh
+```
+
+### Manual Deployment
+
+1. **Install Vercel CLI:**
+   ```bash
+   npm install -g vercel
+   ```
+
+2. **Login and deploy:**
+   ```bash
+   vercel login
+   vercel --prod
+   ```
+
+3. **Configure environment variables** in Vercel dashboard
+
+📖 **See [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) for detailed instructions**
 Frontend will run on http://localhost:3000
 
 ### Production Build

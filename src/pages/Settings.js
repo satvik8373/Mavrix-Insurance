@@ -3,6 +3,7 @@ import { Save, Mail, Clock, Send, Eye, EyeOff, Lock, Key } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import { API_ENDPOINTS } from '../config/api';
 
 const Settings = () => {
   const { settings, setSettings } = useData();
@@ -36,7 +37,7 @@ const Settings = () => {
       
       // Update email configuration on server if provided
       if (formData.emailConfig.user && formData.emailConfig.password) {
-        const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://mavrix-insurance-api.vercel.app'}/api/update-email-config`, {
+        const response = await fetch(API_ENDPOINTS.UPDATE_EMAIL_CONFIG, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -86,7 +87,7 @@ const Settings = () => {
         expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
       };
 
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://mavrix-insurance-api.vercel.app'}/api/send-single-reminder`, {
+      const response = await fetch(API_ENDPOINTS.SEND_SINGLE_REMINDER, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

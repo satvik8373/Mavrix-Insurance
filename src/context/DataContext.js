@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { differenceInDays, parseISO } from 'date-fns';
+import { API_ENDPOINTS } from '../config/api';
 
 const DataContext = createContext();
 
@@ -10,8 +11,6 @@ export const useData = () => {
   }
   return context;
 };
-
-const API_BASE = process.env.REACT_APP_API_URL || 'https://mavrix-insurance-api.vercel.app';
 
 export const DataProvider = ({ children }) => {
   const [insuranceData, setInsuranceData] = useState([]);
@@ -37,14 +36,14 @@ export const DataProvider = ({ children }) => {
       setLoading(true);
       
       // Load insurance data
-      const insuranceResponse = await fetch(`${API_BASE}/insurance`);
+      const insuranceResponse = await fetch(API_ENDPOINTS.GET_INSURANCE_DATA);
       if (insuranceResponse.ok) {
         const insuranceData = await insuranceResponse.json();
         setInsuranceData(insuranceData);
       }
 
       // Load email logs
-      const logsResponse = await fetch(`${API_BASE}/logs`);
+      const logsResponse = await fetch(API_ENDPOINTS.GET_EMAIL_LOGS);
       if (logsResponse.ok) {
         const logs = await logsResponse.json();
         setEmailLogs(logs);
@@ -79,7 +78,7 @@ export const DataProvider = ({ children }) => {
 
   const addInsuranceEntry = async (entry) => {
     try {
-      const response = await fetch(`${API_BASE}/insurance`, {
+      const response = await fetch(API_ENDPOINTS.ADD_INSURANCE, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -102,7 +101,7 @@ export const DataProvider = ({ children }) => {
 
   const updateInsuranceEntry = async (id, updatedEntry) => {
     try {
-      const response = await fetch(`${API_BASE}/insurance/${id}`, {
+      const response = await fetch(`${API_ENDPOINTS.UPDATE_INSURANCE}/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -128,7 +127,7 @@ export const DataProvider = ({ children }) => {
   const deleteInsuranceEntry = async (id) => {
     try {
       console.log('Deleting entry with ID:', id);
-      const response = await fetch(`${API_BASE}/insurance/${id}`, {
+      const response = await fetch(`${API_ENDPOINTS.DELETE_INSURANCE}/${id}`, {
         method: 'DELETE'
       });
 
@@ -149,7 +148,7 @@ export const DataProvider = ({ children }) => {
 
   const bulkAddInsuranceData = async (data) => {
     try {
-      const response = await fetch(`${API_BASE}/insurance/bulk`, {
+      const response = await fetch(API_ENDPOINTS.ADD_INSURANCE + '/bulk', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

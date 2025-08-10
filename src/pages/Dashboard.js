@@ -5,6 +5,7 @@ import { useData } from '../context/DataContext';
 import StatusBadge from '../components/StatusBadge';
 import EditModal from '../components/EditModal';
 import toast from 'react-hot-toast';
+import { API_ENDPOINTS } from '../config/api';
 
 const Dashboard = () => {
   const { insuranceData, getStatus, deleteInsuranceEntry, addEmailLog, loading } = useData();
@@ -53,7 +54,7 @@ const Dashboard = () => {
     setSendingEmail(entry.id);
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://mavrix-insurance-api.vercel.app'}/api/send-single-reminder`, {
+      const response = await fetch(API_ENDPOINTS.SEND_SINGLE_REMINDER, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
