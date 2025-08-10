@@ -60,22 +60,28 @@ export const DataProvider = ({ children }) => {
       ]);
 
       if (insuranceResponse.status === 'fulfilled') {
-        setInsuranceData(insuranceResponse.value);
+        const data = insuranceResponse.value;
+        // Ensure data is always an array
+        setInsuranceData(Array.isArray(data) ? data : []);
       } else {
         // Fallback to localStorage
         const savedData = localStorage.getItem('insuranceData');
         if (savedData) {
-          setInsuranceData(JSON.parse(savedData));
+          const parsed = JSON.parse(savedData);
+          setInsuranceData(Array.isArray(parsed) ? parsed : []);
         }
       }
 
       if (logsResponse.status === 'fulfilled') {
-        setEmailLogs(logsResponse.value);
+        const logs = logsResponse.value;
+        // Ensure logs is always an array
+        setEmailLogs(Array.isArray(logs) ? logs : []);
       } else {
         // Fallback to localStorage
         const savedLogs = localStorage.getItem('emailLogs');
         if (savedLogs) {
-          setEmailLogs(JSON.parse(savedLogs));
+          const parsed = JSON.parse(savedLogs);
+          setEmailLogs(Array.isArray(parsed) ? parsed : []);
         }
       }
     } catch (error) {
@@ -85,10 +91,12 @@ export const DataProvider = ({ children }) => {
       const savedLogs = localStorage.getItem('emailLogs');
       
       if (savedData) {
-        setInsuranceData(JSON.parse(savedData));
+        const parsed = JSON.parse(savedData);
+        setInsuranceData(Array.isArray(parsed) ? parsed : []);
       }
       if (savedLogs) {
-        setEmailLogs(JSON.parse(savedLogs));
+        const parsed = JSON.parse(savedLogs);
+        setEmailLogs(Array.isArray(parsed) ? parsed : []);
       }
     } finally {
       setLoading(false);

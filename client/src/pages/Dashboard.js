@@ -26,27 +26,30 @@ const Dashboard = () => {
 
   if (!isAuthenticated) return null;
 
+  // Ensure insuranceData is always an array
+  const safeInsuranceData = Array.isArray(insuranceData) ? insuranceData : [];
+
   // Calculate statistics
-  const totalEntries = insuranceData.length;
-  const activePolicies = insuranceData.filter(entry => {
+  const totalEntries = safeInsuranceData.length;
+  const activePolicies = safeInsuranceData.filter(entry => {
     const expiryDate = new Date(entry.expiryDate);
     return expiryDate > new Date();
   }).length;
   
-  const expiringSoon = insuranceData.filter(entry => {
+  const expiringSoon = safeInsuranceData.filter(entry => {
     const expiryDate = new Date(entry.expiryDate);
     const thirtyDaysFromNow = new Date();
     thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
     return expiryDate <= thirtyDaysFromNow && expiryDate > new Date();
   }).length;
   
-  const expiredPolicies = insuranceData.filter(entry => {
+  const expiredPolicies = safeInsuranceData.filter(entry => {
     const expiryDate = new Date(entry.expiryDate);
     return expiryDate <= new Date();
   }).length;
 
   // Filter data based on search and status
-  const filteredData = insuranceData.filter(entry => {
+  const filteredData = safeInsuranceData.filter(entry => {
     const matchesSearch = 
       entry.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       entry.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
