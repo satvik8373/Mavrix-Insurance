@@ -22,14 +22,17 @@
       "src": "/static/(.*)",
       "dest": "/static/$1"
     },
-    {
-      "src": "/manifest.json",
-      "dest": "/manifest.json"
-    },
-    {
-      "src": "/favicon.ico",
-      "dest": "/favicon.ico"
-    },
+            {
+          "src": "/manifest.json",
+          "dest": "/manifest.json"
+        },
+        {
+          "src": "/sw.js",
+          "dest": "/sw.js",
+          "headers": {
+            "Content-Type": "application/javascript"
+          }
+        },
     {
       "src": "/(.*)",
       "dest": "/index.html"

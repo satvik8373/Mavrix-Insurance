@@ -12,6 +12,7 @@ if ('serviceWorker' in navigator) {
       })
       .catch((registrationError) => {
         console.log('SW registration failed: ', registrationError);
+        console.log('App will work without service worker (offline functionality disabled)');
       });
   });
 }

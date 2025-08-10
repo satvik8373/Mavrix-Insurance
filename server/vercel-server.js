@@ -44,7 +44,8 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
     database: useDatabase ? 'connected' : 'disconnected',
     environment: process.env.NODE_ENV || 'development',
-    mongodb_configured: !!process.env.MONGODB_URI
+    mongodb_configured: !!process.env.MONGODB_URI,
+    message: useDatabase ? 'Database is working' : 'Database offline - using fallback data'
   });
 });
 
@@ -68,11 +69,29 @@ app.get('/', (req, res) => {
 // Get insurance data
 app.get('/api/insurance-data', async (req, res) => {
   try {
+    console.log('Insurance data request received');
+    console.log('Database status:', { useDatabase });
+    
     if (useDatabase) {
+      console.log('Using database for insurance data');
       const data = await database.getInsuranceData();
       res.json(data);
     } else {
-      res.status(503).json({ error: 'Database not connected' });
+      // Return sample data when database is not connected
+      console.log('Database not connected, returning sample data');
+      const sampleData = [
+        {
+          id: 'sample-1',
+          vehicleNo: 'GJ01AB1234',
+          vehicleType: 'Four Wheeler',
+          name: 'Sample User',
+          mobileNo: '9876543210',
+          email: 'sample@example.com',
+          expiryDate: '2025-12-31',
+          createdAt: new Date().toISOString()
+        }
+      ];
+      res.json(sampleData);
     }
   } catch (error) {
     console.error('Error getting insurance data:', error);
