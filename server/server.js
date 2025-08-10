@@ -49,7 +49,14 @@ app.get('/api/test', (req, res) => {
     message: 'Server is working!',
     timestamp: new Date().toISOString(),
     database: database.isConnected ? 'Connected' : 'Disconnected',
-    env: process.env.NODE_ENV || 'development'
+    env: process.env.NODE_ENV || 'development',
+    environmentVariables: {
+      MONGODB_URI: process.env.MONGODB_URI ? 'Set' : 'Not Set',
+      DATABASE_NAME: process.env.DATABASE_NAME ? 'Set' : 'Not Set',
+      NODE_ENV: process.env.NODE_ENV || 'development',
+      ENABLE_EMAIL: process.env.ENABLE_EMAIL || 'false',
+      ENABLE_AUTH: process.env.ENABLE_AUTH || 'true'
+    }
   });
 });
 
@@ -91,12 +98,23 @@ app.use((err, req, res, next) => {
 // Connect to database and start server
 async function startServer() {
   try {
-    const dbConnected = await database.connect();
+    let dbConnected = false;
     
-    if (dbConnected) {
-      console.log('✅ Connected to MongoDB successfully');
+    // Only try to connect to database if MONGODB_URI is provided
+    if (process.env.MONGODB_URI) {
+      try {
+        dbConnected = await database.connect();
+        if (dbConnected) {
+          console.log('✅ Connected to MongoDB successfully');
+        } else {
+          console.error('❌ Failed to connect to MongoDB. Server will start with limited functionality.');
+        }
+      } catch (dbError) {
+        console.error('❌ Database connection error:', dbError.message);
+        console.log('⚠️  Server will start without database connection');
+      }
     } else {
-      console.error('❌ Failed to connect to MongoDB. Server will start with limited functionality.');
+      console.log('⚠️  MONGODB_URI not provided. Server will start without database connection.');
     }
 
     app.listen(PORT, () => {
@@ -107,19 +125,25 @@ async function startServer() {
       console.log(`📅 Reminder days: ${process.env.REMINDER_DAYS || 7}`);
     });
 
-    // Schedule daily reminders at 9:00 AM
-    const cron = require('node-cron');
-    cron.schedule('0 9 * * *', async () => {
+    // Only schedule cron jobs if database is connected
+    if (dbConnected) {
       try {
-        console.log('📧 Running scheduled reminder check...');
-        const emailService = require('./services/emailService');
-        const result = await emailService.sendReminderEmails();
-        console.log(`✅ Reminder check completed: ${result.sent} sent, ${result.failed} failed`);
-      } catch (error) {
-        console.error('❌ Error in scheduled reminder check:', error);
+        const cron = require('node-cron');
+        cron.schedule('0 9 * * *', async () => {
+          try {
+            console.log('📧 Running scheduled reminder check...');
+            const emailService = require('./services/emailService');
+            const result = await emailService.sendReminderEmails();
+            console.log(`✅ Reminder check completed: ${result.sent} sent, ${result.failed} failed`);
+          } catch (error) {
+            console.error('❌ Error in scheduled reminder check:', error);
+          }
+        });
+        console.log('📅 Scheduled daily reminders at 9:00 AM');
+      } catch (cronError) {
+        console.error('❌ Error setting up cron jobs:', cronError.message);
       }
-    });
-    console.log('📅 Scheduled daily reminders at 9:00 AM');
+    }
 
   } catch (error) {
     console.error('❌ Failed to start server:', error);

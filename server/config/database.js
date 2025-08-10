@@ -10,6 +10,18 @@ class Database {
 
   async connect() {
     try {
+      if (!process.env.MONGODB_URI) {
+        console.error('❌ MONGODB_URI environment variable is not set');
+        this.isConnected = false;
+        return false;
+      }
+
+      if (!process.env.DATABASE_NAME) {
+        console.error('❌ DATABASE_NAME environment variable is not set');
+        this.isConnected = false;
+        return false;
+      }
+
       this.client = new MongoClient(process.env.MONGODB_URI, {
         useNewUrlParser: true,
         useUnifiedTopology: true,

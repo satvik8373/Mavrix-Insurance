@@ -21,7 +21,10 @@ const validateInsuranceEntry = [
 router.get('/', async (req, res) => {
   try {
     if (!database.isConnected) {
-      return res.status(503).json({ error: 'Database not connected' });
+      return res.status(503).json({ 
+        error: 'Database not connected',
+        message: 'Please check environment variables: MONGODB_URI and DATABASE_NAME'
+      });
     }
 
     const data = await database.getInsuranceData();
