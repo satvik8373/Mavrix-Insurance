@@ -40,7 +40,7 @@ REMINDER_DAYS=7
 ## Client Configuration
 
 ### 1. Create Environment File
-In the `client/` directory, create a `.env` file with:
+In the root directory, create a `.env` file with:
 
 ```bash
 REACT_APP_API_URL=http://localhost:5000/api

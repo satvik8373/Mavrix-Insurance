@@ -10,8 +10,6 @@ node_modules
 # Build files
 build/
 dist/
-client/build/
-client/dist/
 
 # Logs
 *.log
