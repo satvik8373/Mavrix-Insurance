@@ -95,6 +95,20 @@ const initializeStorage = async () => {
 };
 
 // Routes
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'InsureTrack API is running',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      insurance: '/api/insurance',
+      logs: '/api/logs',
+      debug: '/api/debug'
+    }
+  });
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
@@ -359,6 +373,36 @@ app.post('/api/send-single-reminder', async (req, res) => {
   }
 });
 
+// Catch-all error handler
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({
+    error: 'Internal server error',
+    message: err.message,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// 404 handler for undefined routes
+app.use('*', (req, res) => {
+  res.status(404).json({
+    error: 'Route not found',
+    message: `The route ${req.originalUrl} does not exist`,
+    availableRoutes: [
+      'GET /',
+      'GET /api/health',
+      'GET /api/insurance',
+      'POST /api/insurance',
+      'PUT /api/insurance/:id',
+      'DELETE /api/insurance/:id',
+      'POST /api/insurance/bulk',
+      'GET /api/logs',
+      'POST /api/send-reminders',
+      'POST /api/send-single-reminder'
+    ]
+  });
+});
+
 // Schedule daily reminder check at 8 AM
 cron.schedule('0 8 * * *', async () => {
   console.log('Running daily reminder check...');
@@ -394,15 +438,29 @@ cron.schedule('0 8 * * *', async () => {
 
 // Start server after initializing storage
 const startServer = async () => {
-  await initializeStorage();
-  
-  const server = app.listen(PORT, () => {
-    console.log(`InsureTrack server running on port ${PORT}`);
-    console.log(`Storage: ${useDatabase ? 'MongoDB' : 'File-based'}`);
-    console.log('Daily reminders scheduled for 8:00 AM');
-  });
+  try {
+    console.log('Initializing storage...');
+    await initializeStorage();
+    
+    console.log(`Starting server on port ${PORT}...`);
+    const server = app.listen(PORT, () => {
+      console.log(`✅ InsureTrack server running on port ${PORT}`);
+      console.log(`📊 Storage: ${useDatabase ? 'MongoDB' : 'File-based'}`);
+      console.log('⏰ Daily reminders scheduled for 8:00 AM');
+      console.log('🌐 API endpoints available:');
+      console.log('   - GET  / (root)');
+      console.log('   - GET  /api/health');
+      console.log('   - GET  /api/insurance');
+      console.log('   - POST /api/insurance');
+      console.log('   - GET  /api/logs');
+      console.log('   - POST /api/send-reminders');
+    });
 
-  return server;
+    return server;
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    throw error;
+  }
 };
 
 // Start the server
