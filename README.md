@@ -135,6 +135,10 @@ chmod +x deploy.sh
 ### 🚨 **Production Issues Fixed!**
 
 If you're experiencing production issues (503 errors, missing data), see **[VERCEL_SETUP.md](./VERCEL_SETUP.md)** for environment variable setup.
+
+### 🗄️ **Want Real Data Instead of Sample Data?**
+
+To connect to a real MongoDB database and show actual insurance data, see **[MONGODB_SETUP.md](./MONGODB_SETUP.md)** for complete setup instructions.
 Frontend will run on http://localhost:3000
 
 ### Production Build

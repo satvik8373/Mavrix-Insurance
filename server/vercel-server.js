@@ -16,19 +16,28 @@ let useDatabase = false;
 
 const initializeStorage = async () => {
   try {
-    console.log('Initializing database connection...');
-    console.log('Environment check:', {
+    console.log('🚀 Initializing database connection...');
+    console.log('🔍 Environment check:', {
       NODE_ENV: process.env.NODE_ENV,
-      MONGODB_URI: process.env.MONGODB_URI ? 'SET' : 'NOT SET'
+      MONGODB_URI: process.env.MONGODB_URI ? '✅ SET' : '❌ NOT SET',
+      DATABASE_NAME: process.env.DATABASE_NAME || 'insuretrack (default)'
     });
+    
+    if (!process.env.MONGODB_URI) {
+      console.log('❌ MONGODB_URI not set - database will be offline');
+      console.log('💡 To fix: Set MONGODB_URI in Vercel environment variables');
+      useDatabase = false;
+      return;
+    }
     
     useDatabase = await database.connect();
     
     if (useDatabase) {
-      console.log('✅ Using MongoDB for data storage');
+      console.log('✅ Successfully connected to MongoDB!');
+      console.log('📊 Database: ' + (process.env.DATABASE_NAME || 'insuretrack'));
     } else {
-      console.log('⚠️ Database connection failed, using fallback');
-      console.log('💡 To fix: Set MONGODB_URI environment variable in Vercel');
+      console.log('⚠️ Database connection failed, using fallback data');
+      console.log('💡 To fix: Check MONGODB_URI format and MongoDB Atlas settings');
     }
   } catch (error) {
     console.error('❌ Database initialization error:', error);
@@ -45,7 +54,9 @@ app.get('/api/health', (req, res) => {
     database: useDatabase ? 'connected' : 'disconnected',
     environment: process.env.NODE_ENV || 'development',
     mongodb_configured: !!process.env.MONGODB_URI,
-    message: useDatabase ? 'Database is working' : 'Database offline - using fallback data'
+    database_name: process.env.DATABASE_NAME || 'insuretrack',
+    message: useDatabase ? 'Database is working - real data available' : 'Database offline - showing fallback data',
+    instructions: useDatabase ? 'All good! Your app is connected to MongoDB.' : 'Set MONGODB_URI in Vercel to enable real data storage.'
   });
 });
 
