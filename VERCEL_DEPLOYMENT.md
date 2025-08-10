@@ -40,6 +40,8 @@ cd server
 vercel
 ```
 
+**Important**: Make sure you're in the `server/` directory when running this command. The server is configured as a serverless function and doesn't require a build step.
+
 ### 1.3 Configure Environment Variables
 When prompted, set the following environment variables:
 
@@ -63,24 +65,19 @@ After deployment, note the server URL (e.g., `https://your-server.vercel.app`)
 cd ../client
 ```
 
-### 2.2 Update API URL
-Create a `.env` file in the client directory:
-
-```bash
-REACT_APP_API_URL=https://your-server.vercel.app/api
-```
-
-### 2.3 Deploy to Vercel
+### 2.2 Deploy to Vercel
 ```bash
 vercel
 ```
 
-### 2.4 Configure Environment Variables
-Set the API URL environment variable:
+### 2.3 Configure Environment Variables
+When prompted during deployment, set the API URL environment variable:
 
 ```bash
 REACT_APP_API_URL=https://your-server.vercel.app/api
 ```
+
+**Important**: Do NOT create a `.env` file in the client directory for production. Environment variables should be set directly in Vercel.
 
 ## Step 3: Configure Vercel Projects
 
@@ -97,6 +94,17 @@ In your Vercel dashboard for the client project:
 1. Go to **Settings** → **Environment Variables**
 2. Add `REACT_APP_API_URL` with your server URL
 3. Ensure **Production**, **Preview**, and **Development** are all checked
+
+### 3.3 Environment Variable Configuration (Important!)
+
+**Do NOT use the `@secret_name` syntax in vercel.json files.** Instead:
+
+1. **Remove env sections** from both `client/vercel.json` and `server/vercel.json`
+2. **Set environment variables directly** in the Vercel dashboard
+3. **Use plain text values** for non-sensitive data
+4. **Use Vercel's built-in encryption** for sensitive data
+
+The current vercel.json files have been updated to remove secret references.
 
 ## Step 4: Custom Domain (Optional)
 
@@ -140,11 +148,23 @@ REACT_APP_API_URL=https://api.yourdomain.com/api
 
 ### Common Issues
 
-1. **CORS Errors**
+1. **Environment Variable "references Secret which does not exist"**
+   - **Solution**: Remove `env` sections from vercel.json files
+   - **Solution**: Set environment variables directly in Vercel dashboard
+   - **Cause**: Using `@secret_name` syntax without creating secrets first
+   - **Prevention**: Always use Vercel dashboard for environment variables
+
+2. **"No Output Directory named 'build' found after Build completed"**
+   - **Solution**: Ensure you're deploying from the correct directory (`server/` for backend)
+   - **Solution**: Server doesn't need a build step - it's a serverless function
+   - **Cause**: Vercel trying to run build command from wrong directory
+   - **Prevention**: Always run `vercel` from the `server/` directory for backend deployment
+
+2. **CORS Errors**
    - Ensure server CORS is configured for your client domain
    - Check that environment variables are set correctly
 
-2. **Database Connection Failed**
+3. **Database Connection Failed**
    - Verify MongoDB URI is correct
    - Check network access in MongoDB Atlas
    - Ensure IP whitelist includes Vercel's IPs
