@@ -1,0 +1,11 @@
+# Ignore root monorepo files
+../package.json
+../package-lock.json
+../node_modules
+../client/
+../.gitignore
+../README.md
+../VERCEL_DEPLOYMENT.md
+../ENVIRONMENT_VARIABLE_FIX.md
+../QUICK_START.md
+../ENVIRONMENT_SETUP.md

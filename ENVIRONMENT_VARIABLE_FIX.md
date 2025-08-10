@@ -129,11 +129,19 @@ vercel
 - **Solution**: Updated server vercel.json for serverless function deployment
 - **Prevention**: Always deploy server from the `server/` directory
 
+### Monorepo Build Script Issue
+- **Problem**: "Missing script: build" or "Lifecycle script build failed"
+- **Solution**: Removed build scripts from root package.json
+- **Solution**: Added .vercelignore file to prevent Vercel from reading root config
+- **Prevention**: Deploy from specific directories, not from root monorepo
+
 ## Files Modified
 
 - `client/vercel.json` - Removed env section
 - `server/vercel.json` - Updated for serverless deployment
 - `server/package.json` - Removed build script
+- `server/.vercelignore` - Added to prevent monorepo config conflicts
+- `package.json` (root) - Removed build scripts that caused conflicts
 - `VERCEL_DEPLOYMENT.md` - Updated deployment guide with troubleshooting
 - `ENVIRONMENT_VARIABLE_FIX.md` - This file (created)
 

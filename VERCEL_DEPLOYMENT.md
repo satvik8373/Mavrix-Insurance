@@ -42,6 +42,8 @@ vercel
 
 **Important**: Make sure you're in the `server/` directory when running this command. The server is configured as a serverless function and doesn't require a build step.
 
+**Note**: The server directory contains a `.vercelignore` file to prevent Vercel from reading the root monorepo configuration.
+
 ### 1.3 Configure Environment Variables
 When prompted, set the following environment variables:
 
@@ -159,6 +161,12 @@ REACT_APP_API_URL=https://api.yourdomain.com/api
    - **Solution**: Server doesn't need a build step - it's a serverless function
    - **Cause**: Vercel trying to run build command from wrong directory
    - **Prevention**: Always run `vercel` from the `server/` directory for backend deployment
+
+3. **"Missing script: build" or "Lifecycle script build failed"**
+   - **Solution**: Use `.vercelignore` file to prevent Vercel from reading root monorepo config
+   - **Solution**: Ensure you're in the `server/` directory when deploying
+   - **Cause**: Vercel detecting monorepo and trying to run root build commands
+   - **Prevention**: Deploy from specific directories, not from root
 
 2. **CORS Errors**
    - Ensure server CORS is configured for your client domain
