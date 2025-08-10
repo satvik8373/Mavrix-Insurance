@@ -498,6 +498,9 @@ startServer().then(server => {
   console.log('Server is running and ready to accept connections...');
 }).catch(error => {
   console.error('Failed to start server:', error);
-  process.exit(1);
+  // Don't exit immediately in Vercel environment
+  if (process.env.NODE_ENV !== 'production') {
+    process.exit(1);
+  }
 });
 
