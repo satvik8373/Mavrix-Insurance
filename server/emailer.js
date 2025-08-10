@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const config = require('./config');
 
 class Emailer {
   constructor() {
@@ -9,12 +10,12 @@ class Emailer {
   setupTransporter() {
     // Configure with environment variables or default settings
     const emailConfig = {
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT) || 587,
+      host: config.email.host,
+      port: config.email.port,
       secure: false,
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD
+        user: config.email.user,
+        pass: config.email.password
       }
     };
 
@@ -27,7 +28,7 @@ class Emailer {
 
   async sendReminders(insuranceData) {
     const today = new Date();
-    const reminderDays = parseInt(process.env.REMINDER_DAYS) || 7;
+    const reminderDays = config.reminderDays;
     const results = [];
 
     for (const entry of insuranceData) {
@@ -42,11 +43,6 @@ class Emailer {
     }
 
     return results;
-  }
-
-  async sendReminder(name, email, expiryDate) {
-    const entry = { name, email, expiryDate };
-    return this.sendReminderEmail(entry);
   }
 
   async sendReminderEmail(entry) {
@@ -67,7 +63,7 @@ class Emailer {
 
     try {
       const mailOptions = {
-        from: process.env.EMAIL_USER,
+        from: config.email.user,
         to: entry.email,
         subject: emailContent.subject,
         text: emailContent.text,

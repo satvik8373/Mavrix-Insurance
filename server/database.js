@@ -1,4 +1,5 @@
 const { MongoClient } = require('mongodb');
+const config = require('./config');
 
 class Database {
   constructor() {
@@ -9,8 +10,8 @@ class Database {
 
   async connect() {
     try {
-      const uri = process.env.MONGODB_URI;
-      const dbName = process.env.DATABASE_NAME || 'insuretrack';
+      const uri = config.mongodb.uri;
+      const dbName = config.mongodb.databaseName;
 
       if (!uri) {
         console.warn('MongoDB URI not configured. Using file-based storage.');

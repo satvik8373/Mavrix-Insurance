@@ -3,7 +3,7 @@ const cors = require('cors');
 const cron = require('node-cron');
 const fs = require('fs');
 const path = require('path');
-require('dotenv').config();
+const config = require('./config');
 
 const emailer = require('./emailer');
 const database = require('./database');
@@ -19,7 +19,7 @@ process.on('uncaughtException', (error) => {
 });
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = config.port;
 
 // Middleware
 app.use(cors());
@@ -130,11 +130,11 @@ app.post('/api/update-email-config', (req, res) => {
   try {
     const { host, port, user, password } = req.body;
     
-    // Update environment variables (for current session)
-    process.env.SMTP_HOST = host;
-    process.env.SMTP_PORT = port;
-    process.env.EMAIL_USER = user;
-    process.env.EMAIL_PASSWORD = password;
+    // Update config values (for current session)
+    config.email.host = host;
+    config.email.port = parseInt(port);
+    config.email.user = user;
+    config.email.password = password;
     
     // Reinitialize emailer with new config
     emailer.setupTransporter();

@@ -99,46 +99,6 @@ Server will run on http://localhost:5000
 ```bash
 npm start
 ```
-
-## 🚀 Deployment to Vercel
-
-### Quick Deployment
-
-**For Windows users:**
-```bash
-deploy.bat
-```
-
-**For Mac/Linux users:**
-```bash
-chmod +x deploy.sh
-./deploy.sh
-```
-
-### Manual Deployment
-
-1. **Install Vercel CLI:**
-   ```bash
-   npm install -g vercel
-   ```
-
-2. **Login and deploy:**
-   ```bash
-   vercel login
-   vercel --prod
-   ```
-
-3. **Configure environment variables** in Vercel dashboard
-
-📖 **See [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) for detailed instructions**
-
-### 🚨 **Production Issues Fixed!**
-
-If you're experiencing production issues (503 errors, missing data), see **[VERCEL_SETUP.md](./VERCEL_SETUP.md)** for environment variable setup.
-
-### 🗄️ **Want Real Data Instead of Sample Data?**
-
-To connect to a real MongoDB database and show actual insurance data, see **[MONGODB_SETUP.md](./MONGODB_SETUP.md)** for complete setup instructions.
 Frontend will run on http://localhost:3000
 
 ### Production Build
