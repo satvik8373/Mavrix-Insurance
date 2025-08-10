@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://your-server-url.vercel.app/api/$1"
+      "destination": "https://mavrix-insurance-api.vercel.app/api/$1"
     },
     {
       "source": "/(.*)",

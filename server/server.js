@@ -17,8 +17,8 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
     ? [
-        'https://your-client-url.vercel.app',
-        'https://your-client-url.vercel.app',
+        'https://mavrix-insurance.vercel.app',
+        'https://mavrix-insurance.vercel.app',
         'http://localhost:3000'
       ]
     : ['http://localhost:3000'],

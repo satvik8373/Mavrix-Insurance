@@ -18,7 +18,7 @@ export const DataProvider = ({ children }) => {
 
   // API base URL
   const API_BASE_URL = process.env.NODE_ENV === 'production' 
-    ? (process.env.REACT_APP_API_URL || 'https://your-server-url.vercel.app/api')
+    ? (process.env.REACT_APP_API_URL || 'https://mavrix-insurance-api.vercel.app/api')
     : 'http://localhost:5000/api';
 
   // Helper function to make API calls
