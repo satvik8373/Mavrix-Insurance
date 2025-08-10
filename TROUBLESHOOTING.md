@@ -1,8 +1,8 @@
 # 🔧 Troubleshooting Guide - 404 Server Issues
 
 ## 🚨 Current Issue
-- **Client URL**: https://mavrix-insurance-4y55o8g1u-satvik8373s-projects.vercel.app/
-- **Server URL**: https://mavrix-insurance-api-4y55o8g1u-satvik8373s-projects.vercel.app/
+- **Client URL**: https://mavrix-insurance.vercel.app/
+- **Server URL**: https://mavrix-insurance-api.vercel.app/
 - **Error**: 404 NOT_FOUND when accessing API endpoints
 
 ## 🔍 Debugging Steps
@@ -11,8 +11,8 @@
 Visit these URLs to check if the server is responding:
 
 ```
-https://mavrix-insurance-api-4y55o8g1u-satvik8373s-projects.vercel.app/api/health
-https://mavrix-insurance-api-4y55o8g1u-satvik8373s-projects.vercel.app/api/test
+https://mavrix-insurance-api.vercel.app/api/health
+https://mavrix-insurance-api.vercel.app/api/test
 ```
 
 **Expected Response:**
@@ -28,9 +28,9 @@ https://mavrix-insurance-api-4y55o8g1u-satvik8373s-projects.vercel.app/api/test
 Try these specific endpoints:
 
 ```
-GET https://mavrix-insurance-api-4y55o8g1u-satvik8373s-projects.vercel.app/api/insurance
-GET https://mavrix-insurance-api-4y55o8g1u-satvik8373s-projects.vercel.app/api/email/logs
-POST https://mavrix-insurance-api-4y55o8g1u-satvik8373s-projects.vercel.app/api/auth/login
+GET https://mavrix-insurance-api.vercel.app/api/insurance
+GET https://mavrix-insurance-api.vercel.app/api/email/logs
+POST https://mavrix-insurance-api.vercel.app/api/auth/login
 ```
 
 ### 3. Check Vercel Deployment
