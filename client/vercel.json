@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://mavrix-insurance-api.vercel.app/api/$1"
+      "destination": "https://mavrix-insurance-api-4y55o8g1u-satvik8373s-projects.vercel.app/api/$1"
     },
     {
       "source": "/(.*)",
