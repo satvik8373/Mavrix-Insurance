@@ -9,7 +9,7 @@ import EditEntryModal from '../components/EditEntryModal';
 import toast from 'react-hot-toast';
 
 const Dashboard = () => {
-  const { insuranceData, emailLogs, deleteInsuranceEntry, updateInsuranceEntry, sendEmail } = useData();
+  const { insuranceData, emailLogs, deleteInsuranceEntry, updateInsuranceEntry, sendEmail, loading, error, loadData } = useData();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,14 +35,14 @@ const Dashboard = () => {
     const expiryDate = new Date(entry.expiryDate);
     return expiryDate > new Date();
   }).length;
-  
+
   const expiringSoon = safeInsuranceData.filter(entry => {
     const expiryDate = new Date(entry.expiryDate);
     const thirtyDaysFromNow = new Date();
     thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
     return expiryDate <= thirtyDaysFromNow && expiryDate > new Date();
   }).length;
-  
+
   const expiredPolicies = safeInsuranceData.filter(entry => {
     const expiryDate = new Date(entry.expiryDate);
     return expiryDate <= new Date();
@@ -50,12 +50,12 @@ const Dashboard = () => {
 
   // Filter data based on search and status
   const filteredData = safeInsuranceData.filter(entry => {
-    const matchesSearch = 
+    const matchesSearch =
       entry.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       entry.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       entry.policyNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       entry.phone?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     let matchesStatus = true;
     if (statusFilter === 'Active') {
       matchesStatus = new Date(entry.expiryDate) > new Date();
@@ -67,7 +67,7 @@ const Dashboard = () => {
     } else if (statusFilter === 'Expired') {
       matchesStatus = new Date(entry.expiryDate) <= new Date();
     }
-    
+
     return matchesSearch && matchesStatus;
   });
 
@@ -76,7 +76,7 @@ const Dashboard = () => {
     const today = new Date();
     const thirtyDaysFromNow = new Date();
     thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-    
+
     if (date <= today) {
       return { text: 'Expired', color: '#dc2626', bg: '#fef2f2' };
     } else if (date <= thirtyDaysFromNow) {
@@ -123,7 +123,7 @@ This is an automated reminder. Please do not reply to this email.`
       const processTemplate = (template) => {
         const expiryDate = new Date(entry.expiryDate).toLocaleDateString();
         const daysUntilExpiry = Math.ceil((new Date(entry.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
-        
+
         return template
           .replace(/\{name\}/g, entry.name || 'Customer')
           .replace(/\{policyNumber\}/g, entry.policyNumber || 'N/A')
@@ -369,66 +369,112 @@ This is an automated reminder. Please do not reply to this email.`
     }
   };
 
+  // Debug logging
+  console.log('🎯 Dashboard render - insuranceData:', insuranceData);
+  console.log('🎯 Dashboard render - loading:', loading);
+  console.log('🎯 Dashboard render - error:', error);
+  console.log('🎯 Dashboard render - safeInsuranceData length:', safeInsuranceData.length);
+
   return (
     <div style={{ padding: '2rem', background: '#f8fafc', minHeight: '100vh' }}>
+      {/* Debug Info */}
+      {process.env.NODE_ENV === 'development' && (
+        <div style={{
+          background: '#f3f4f6',
+          padding: '1rem',
+          borderRadius: '8px',
+          marginBottom: '1rem',
+          fontSize: '0.8rem',
+          fontFamily: 'monospace'
+        }}>
+          <div>Loading: {loading ? 'Yes' : 'No'}</div>
+          <div>Error: {error || 'None'}</div>
+          <div>Insurance Data Type: {Array.isArray(insuranceData) ? 'Array' : typeof insuranceData}</div>
+          <div>Insurance Data Length: {safeInsuranceData.length}</div>
+          <div>API URL: {process.env.REACT_APP_API_URL || 'Not Set'}</div>
+        </div>
+      )}
+
       {/* Header */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        marginBottom: '2rem' 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '2rem'
       }}>
-        <h1 style={{ 
-          fontSize: '2rem', 
-          fontWeight: 'bold', 
+        <h1 style={{
+          fontSize: '2rem',
+          fontWeight: 'bold',
           color: '#1e293b',
           margin: 0
         }}>
           Insurance Dashboard
         </h1>
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          style={{
-            background: '#2563eb',
-            color: 'white',
-            border: 'none',
-            padding: '0.75rem 1.5rem',
-            borderRadius: '8px',
-            fontSize: '0.9rem',
-            fontWeight: '600',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            transition: 'all 0.2s'
-          }}
-          onMouseEnter={(e) => e.target.style.background = '#1d4ed8'}
-          onMouseLeave={(e) => e.target.style.background = '#2563eb'}
-        >
-          <Plus size={16} />
-          Add New Entry
-        </button>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <button
+            onClick={() => loadData()}
+            disabled={loading}
+            style={{
+              background: loading ? '#9ca3af' : '#16a34a',
+              color: 'white',
+              border: 'none',
+              padding: '0.75rem 1.5rem',
+              borderRadius: '8px',
+              fontSize: '0.9rem',
+              fontWeight: '600',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.2s'
+            }}
+          >
+            {loading ? 'Loading...' : 'Refresh Data'}
+          </button>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            style={{
+              background: '#2563eb',
+              color: 'white',
+              border: 'none',
+              padding: '0.75rem 1.5rem',
+              borderRadius: '8px',
+              fontSize: '0.9rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => e.target.style.background = '#1d4ed8'}
+            onMouseLeave={(e) => e.target.style.background = '#2563eb'}
+          >
+            <Plus size={16} />
+            Add New Entry
+          </button>
+        </div>
       </div>
 
       {/* Statistics Cards */}
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-        gap: '1.5rem', 
-        marginBottom: '2rem' 
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '1.5rem',
+        marginBottom: '2rem'
       }}>
-        <div style={{ 
-          background: 'white', 
-          padding: '1.5rem', 
+        <div style={{
+          background: 'white',
+          padding: '1.5rem',
           borderRadius: '12px',
           boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
           border: '1px solid #e2e8f0'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ 
-              background: '#eff6ff', 
-              padding: '0.75rem', 
-              borderRadius: '8px' 
+            <div style={{
+              background: '#eff6ff',
+              padding: '0.75rem',
+              borderRadius: '8px'
             }}>
               <FileText size={24} color="#2563eb" />
             </div>
@@ -443,18 +489,18 @@ This is an automated reminder. Please do not reply to this email.`
           </div>
         </div>
 
-        <div style={{ 
-          background: 'white', 
-          padding: '1.5rem', 
+        <div style={{
+          background: 'white',
+          padding: '1.5rem',
           borderRadius: '12px',
           boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
           border: '1px solid #e2e8f0'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ 
-              background: '#f0fdf4', 
-              padding: '0.75rem', 
-              borderRadius: '8px' 
+            <div style={{
+              background: '#f0fdf4',
+              padding: '0.75rem',
+              borderRadius: '8px'
             }}>
               <Users size={24} color="#16a34a" />
             </div>
@@ -469,18 +515,18 @@ This is an automated reminder. Please do not reply to this email.`
           </div>
         </div>
 
-        <div style={{ 
-          background: 'white', 
-          padding: '1.5rem', 
+        <div style={{
+          background: 'white',
+          padding: '1.5rem',
           borderRadius: '12px',
           boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
           border: '1px solid #e2e8f0'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ 
-              background: '#fff7ed', 
-              padding: '0.75rem', 
-              borderRadius: '8px' 
+            <div style={{
+              background: '#fff7ed',
+              padding: '0.75rem',
+              borderRadius: '8px'
             }}>
               <AlertTriangle size={24} color="#ea580c" />
             </div>
@@ -495,18 +541,18 @@ This is an automated reminder. Please do not reply to this email.`
           </div>
         </div>
 
-        <div style={{ 
-          background: 'white', 
-          padding: '1.5rem', 
+        <div style={{
+          background: 'white',
+          padding: '1.5rem',
           borderRadius: '12px',
           boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
           border: '1px solid #e2e8f0'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ 
-              background: '#fef2f2', 
-              padding: '0.75rem', 
-              borderRadius: '8px' 
+            <div style={{
+              background: '#fef2f2',
+              padding: '0.75rem',
+              borderRadius: '8px'
             }}>
               <Calendar size={24} color="#dc2626" />
             </div>
@@ -523,9 +569,9 @@ This is an automated reminder. Please do not reply to this email.`
       </div>
 
       {/* Search and Filter */}
-      <div style={{ 
-        background: 'white', 
-        padding: '1.5rem', 
+      <div style={{
+        background: 'white',
+        padding: '1.5rem',
         borderRadius: '12px',
         boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
         border: '1px solid #e2e8f0',
@@ -533,11 +579,11 @@ This is an automated reminder. Please do not reply to this email.`
       }}>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <div style={{ position: 'relative', flex: 1 }}>
-            <Search size={20} color="#64748b" style={{ 
-              position: 'absolute', 
-              left: '12px', 
-              top: '50%', 
-              transform: 'translateY(-50%)' 
+            <Search size={20} color="#64748b" style={{
+              position: 'absolute',
+              left: '12px',
+              top: '50%',
+              transform: 'translateY(-50%)'
             }} />
             <input
               type="text"
@@ -555,11 +601,11 @@ This is an automated reminder. Please do not reply to this email.`
             />
           </div>
           <div style={{ position: 'relative' }}>
-            <Filter size={20} color="#64748b" style={{ 
-              position: 'absolute', 
-              left: '12px', 
-              top: '50%', 
-              transform: 'translateY(-50%)' 
+            <Filter size={20} color="#64748b" style={{
+              position: 'absolute',
+              left: '12px',
+              top: '50%',
+              transform: 'translateY(-50%)'
             }} />
             <select
               value={statusFilter}
@@ -584,18 +630,18 @@ This is an automated reminder. Please do not reply to this email.`
       </div>
 
       {/* Data Table */}
-      <div style={{ 
-        background: 'white', 
+      <div style={{
+        background: 'white',
         borderRadius: '12px',
         boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
         border: '1px solid #e2e8f0',
         overflow: 'hidden'
       }}>
         {filteredData.length === 0 ? (
-          <div style={{ 
-            padding: '3rem', 
-            textAlign: 'center', 
-            color: '#64748b' 
+          <div style={{
+            padding: '3rem',
+            textAlign: 'center',
+            color: '#64748b'
           }}>
             <Car size={48} color="#cbd5e1" style={{ marginBottom: '1rem' }} />
             <div style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>
@@ -621,16 +667,16 @@ This is an automated reminder. Please do not reply to this email.`
                 </tr>
               </thead>
               <tbody>
-                                 {filteredData.map((entry, index) => {
-                   const status = getStatusBadge(entry.expiryDate);
-                   return (
-                     <tr 
-                       key={entry._id} 
-                       style={{ 
-                         borderBottom: '1px solid #f1f5f9',
-                         animation: `fadeInUp 0.3s ease ${index * 0.05}s both`
-                       }}
-                     >
+                {filteredData.map((entry, index) => {
+                  const status = getStatusBadge(entry.expiryDate);
+                  return (
+                    <tr
+                      key={entry._id}
+                      style={{
+                        borderBottom: '1px solid #f1f5f9',
+                        animation: `fadeInUp 0.3s ease ${index * 0.05}s both`
+                      }}
+                    >
                       <td style={{ padding: '1rem', color: '#374151' }}>{entry.policyNumber || 'N/A'}</td>
                       <td style={{ padding: '1rem', color: '#374151' }}>{entry.policyType || 'N/A'}</td>
                       <td style={{ padding: '1rem', color: '#374151', fontWeight: '500' }}>{entry.name || 'N/A'}</td>
@@ -651,102 +697,102 @@ This is an automated reminder. Please do not reply to this email.`
                           {status.text}
                         </span>
                       </td>
-                                             <td style={{ padding: '1rem' }}>
-                         <div style={{ display: 'flex', gap: '0.5rem' }}>
-                           <button 
-                             onClick={() => handleEdit(entry)}
-                             style={{
-                               background: '#eff6ff',
-                               border: 'none',
-                               padding: '0.5rem',
-                               borderRadius: '6px',
-                               cursor: 'pointer',
-                               color: '#2563eb',
-                               transition: 'all 0.2s ease'
-                             }}
-                             onMouseEnter={(e) => {
-                               e.target.style.background = '#dbeafe';
-                               e.target.style.transform = 'scale(1.05)';
-                             }}
-                             onMouseLeave={(e) => {
-                               e.target.style.background = '#eff6ff';
-                               e.target.style.transform = 'scale(1)';
-                             }}
-                             title="Edit Entry"
-                           >
-                             <Edit size={16} />
-                           </button>
-                           <button 
-                             onClick={() => handleSendEmail(entry)}
-                             style={{
-                               background: '#f0fdf4',
-                               border: 'none',
-                               padding: '0.5rem',
-                               borderRadius: '6px',
-                               cursor: 'pointer',
-                               color: '#16a34a',
-                               transition: 'all 0.2s ease'
-                             }}
-                             onMouseEnter={(e) => {
-                               e.target.style.background = '#dcfce7';
-                               e.target.style.transform = 'scale(1.05)';
-                             }}
-                             onMouseLeave={(e) => {
-                               e.target.style.background = '#f0fdf4';
-                               e.target.style.transform = 'scale(1)';
-                             }}
-                             title="Send Email Automatically"
-                           >
-                             <Mail size={16} />
-                           </button>
-                           <button 
-                             onClick={() => handleDelete(entry)}
-                             style={{
-                               background: '#fef2f2',
-                               border: 'none',
-                               padding: '0.5rem',
-                               borderRadius: '6px',
-                               cursor: 'pointer',
-                               color: '#dc2626',
-                               transition: 'all 0.2s ease'
-                             }}
-                             onMouseEnter={(e) => {
-                               e.target.style.background = '#fecaca';
-                               e.target.style.transform = 'scale(1.05)';
-                             }}
-                             onMouseLeave={(e) => {
-                               e.target.style.background = '#fef2f2';
-                               e.target.style.transform = 'scale(1)';
-                             }}
-                             title="Delete Entry"
-                           >
-                             <Trash2 size={16} />
-                           </button>
-                         </div>
-                       </td>
+                      <td style={{ padding: '1rem' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button
+                            onClick={() => handleEdit(entry)}
+                            style={{
+                              background: '#eff6ff',
+                              border: 'none',
+                              padding: '0.5rem',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              color: '#2563eb',
+                              transition: 'all 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.background = '#dbeafe';
+                              e.target.style.transform = 'scale(1.05)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.background = '#eff6ff';
+                              e.target.style.transform = 'scale(1)';
+                            }}
+                            title="Edit Entry"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleSendEmail(entry)}
+                            style={{
+                              background: '#f0fdf4',
+                              border: 'none',
+                              padding: '0.5rem',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              color: '#16a34a',
+                              transition: 'all 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.background = '#dcfce7';
+                              e.target.style.transform = 'scale(1.05)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.background = '#f0fdf4';
+                              e.target.style.transform = 'scale(1)';
+                            }}
+                            title="Send Email Automatically"
+                          >
+                            <Mail size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(entry)}
+                            style={{
+                              background: '#fef2f2',
+                              border: 'none',
+                              padding: '0.5rem',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              color: '#dc2626',
+                              transition: 'all 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.background = '#fecaca';
+                              e.target.style.transform = 'scale(1.05)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.background = '#fef2f2';
+                              e.target.style.transform = 'scale(1)';
+                            }}
+                            title="Delete Entry"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
           </div>
-                 )}
-       </div>
+        )}
+      </div>
 
-       {/* Add Entry Modal */}
-       <AddEntryModal 
-         isOpen={isModalOpen} 
-         onClose={() => setIsModalOpen(false)} 
-       />
+      {/* Add Entry Modal */}
+      <AddEntryModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
 
-       {/* Edit Entry Modal */}
-       <EditEntryModal 
-         isOpen={isEditModalOpen} 
-         onClose={() => setIsEditModalOpen(false)}
-         entry={selectedEntry}
-       />
+      {/* Edit Entry Modal */}
+      <EditEntryModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        entry={selectedEntry}
+      />
 
-               <style>{`
+      <style>{`
          @keyframes fadeInUp {
            from { 
              opacity: 0;
@@ -758,8 +804,8 @@ This is an automated reminder. Please do not reply to this email.`
            }
          }
        `}</style>
-     </div>
-   );
- };
+    </div>
+  );
+};
 
 export default Dashboard;
