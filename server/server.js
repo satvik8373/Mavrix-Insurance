@@ -43,12 +43,39 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Test endpoint for debugging
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: 'Server is working!',
+    timestamp: new Date().toISOString(),
+    database: database.isConnected ? 'Connected' : 'Disconnected',
+    env: process.env.NODE_ENV || 'development'
+  });
+});
+
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../client/build')));
   
   app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+  });
+} else {
+  // Development 404 handler
+  app.use('*', (req, res) => {
+    res.status(404).json({ 
+      error: 'Route not found',
+      path: req.originalUrl,
+      method: req.method,
+      availableRoutes: [
+        '/api/health',
+        '/api/test',
+        '/api/insurance',
+        '/api/email',
+        '/api/auth',
+        '/api/upload'
+      ]
+    });
   });
 }
 
