@@ -40,6 +40,10 @@ export const DataProvider = ({ children }) => {
       if (insuranceResponse.ok) {
         const insuranceData = await insuranceResponse.json();
         setInsuranceData(insuranceData);
+      } else {
+        console.warn('Failed to load insurance data:', insuranceResponse.status);
+        // Set empty array to prevent errors
+        setInsuranceData([]);
       }
 
       // Load email logs
@@ -47,6 +51,10 @@ export const DataProvider = ({ children }) => {
       if (logsResponse.ok) {
         const logs = await logsResponse.json();
         setEmailLogs(logs);
+      } else {
+        console.warn('Failed to load email logs:', logsResponse.status);
+        // Set empty array to prevent errors
+        setEmailLogs([]);
       }
 
       // Load settings from localStorage (settings are client-side only)
@@ -56,6 +64,9 @@ export const DataProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Error loading initial data:', error);
+      // Set empty arrays to prevent errors
+      setInsuranceData([]);
+      setEmailLogs([]);
     } finally {
       setLoading(false);
     }

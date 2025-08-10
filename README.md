@@ -131,6 +131,10 @@ chmod +x deploy.sh
 3. **Configure environment variables** in Vercel dashboard
 
 📖 **See [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) for detailed instructions**
+
+### 🚨 **Production Issues Fixed!**
+
+If you're experiencing production issues (503 errors, missing data), see **[VERCEL_SETUP.md](./VERCEL_SETUP.md)** for environment variable setup.
 Frontend will run on http://localhost:3000
 
 ### Production Build

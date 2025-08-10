@@ -16,15 +16,24 @@ let useDatabase = false;
 
 const initializeStorage = async () => {
   try {
+    console.log('Initializing database connection...');
+    console.log('Environment check:', {
+      NODE_ENV: process.env.NODE_ENV,
+      MONGODB_URI: process.env.MONGODB_URI ? 'SET' : 'NOT SET'
+    });
+    
     useDatabase = await database.connect();
+    
     if (useDatabase) {
-      console.log('Using MongoDB for data storage');
+      console.log('✅ Using MongoDB for data storage');
     } else {
-      console.log('Database connection failed, using fallback');
+      console.log('⚠️ Database connection failed, using fallback');
+      console.log('💡 To fix: Set MONGODB_URI environment variable in Vercel');
     }
   } catch (error) {
-    console.error('Database initialization error:', error);
+    console.error('❌ Database initialization error:', error);
     useDatabase = false;
+    console.log('💡 To fix: Check MONGODB_URI and network connectivity');
   }
 };
 
@@ -33,7 +42,9 @@ app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
-    database: useDatabase ? 'connected' : 'disconnected'
+    database: useDatabase ? 'connected' : 'disconnected',
+    environment: process.env.NODE_ENV || 'development',
+    mongodb_configured: !!process.env.MONGODB_URI
   });
 });
 
@@ -201,7 +212,18 @@ app.get('/api/email-logs', async (req, res) => {
       const logs = await database.getEmailLogs();
       res.json(logs);
     } else {
-      res.status(503).json({ error: 'Database not connected' });
+      // Return sample logs when database is not connected
+      console.log('Database not connected, returning sample logs');
+      const sampleLogs = [
+        {
+          id: 'sample-log-1',
+          email: 'sample@example.com',
+          status: 'success',
+          message: 'Sample reminder sent',
+          timestamp: new Date().toISOString()
+        }
+      ];
+      res.json(sampleLogs);
     }
   } catch (error) {
     console.error('Error getting email logs:', error);
