@@ -1,5 +1,5 @@
-server/
-node_modules/
-.git/
-.env
+server
+.git
+node_modules
 *.log
+.env
