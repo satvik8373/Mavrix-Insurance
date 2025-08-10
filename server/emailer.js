@@ -44,6 +44,11 @@ class Emailer {
     return results;
   }
 
+  async sendReminder(name, email, expiryDate) {
+    const entry = { name, email, expiryDate };
+    return this.sendReminderEmail(entry);
+  }
+
   async sendReminderEmail(entry) {
     const emailContent = this.generateEmailContent(entry);
     
