@@ -386,17 +386,17 @@ This is an automated reminder. Please do not reply to this email.`
               >
                 {loading ? 'Loading...' : 'Refresh Data'}
               </button>
-              <button 
-                onClick={() => setIsModalOpen(true)}
+        <button 
+          onClick={() => setIsModalOpen(true)}
                 className="btn btn-primary"
-              >
-                <Plus size={16} />
-                Add New Entry
-              </button>
+        >
+          <Plus size={16} />
+          Add New Entry
+        </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
       {/* Floating Action Button for Mobile */}
       <button 
@@ -444,13 +444,13 @@ This is an automated reminder. Please do not reply to this email.`
               <div className="stat-label">Expiring Soon</div>
             </div>
           </div>
-        </div>
+            </div>
 
         <div className="stat-card">
           <div className="flex items-center justify-center gap-sm">
             <div className="bg-danger" style={{ padding: '0.5rem', borderRadius: '6px', opacity: 0.1 }}>
               <Calendar size={20} color="var(--danger-color)" />
-            </div>
+              </div>
             <div className="text-center">
               <div className="stat-number text-danger">{expiredPolicies}</div>
               <div className="stat-label">Expired</div>
@@ -465,42 +465,42 @@ This is an automated reminder. Please do not reply to this email.`
           <div className="form-group">
             <div style={{ position: 'relative' }}>
               <Search size={20} color="var(--text-secondary)" style={{ 
-                position: 'absolute', 
-                left: '12px', 
-                top: '50%', 
+              position: 'absolute', 
+              left: '12px', 
+              top: '50%', 
                 transform: 'translateY(-50%)',
                 zIndex: 1
-              }} />
-              <input
-                type="text"
-                placeholder="Search by name, email, vehicle number, or mobile..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+            }} />
+            <input
+              type="text"
+              placeholder="Search by name, email, vehicle number, or mobile..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
                 className="form-input"
                 style={{ paddingLeft: '2.5rem' }}
-              />
-            </div>
+            />
+          </div>
           </div>
           <div className="form-group">
-            <div style={{ position: 'relative' }}>
+          <div style={{ position: 'relative' }}>
               <Filter size={20} color="var(--text-secondary)" style={{ 
-                position: 'absolute', 
-                left: '12px', 
-                top: '50%', 
+              position: 'absolute', 
+              left: '12px', 
+              top: '50%', 
                 transform: 'translateY(-50%)',
                 zIndex: 1
-              }} />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+            }} />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
                 className="form-select"
                 style={{ paddingLeft: '2.5rem' }}
-              >
-                <option>All Status</option>
-                <option>Active</option>
-                <option>Expiring Soon</option>
-                <option>Expired</option>
-              </select>
+            >
+              <option>All Status</option>
+              <option>Active</option>
+              <option>Expiring Soon</option>
+              <option>Expired</option>
+            </select>
             </div>
           </div>
         </div>
@@ -521,7 +521,7 @@ This is an automated reminder. Please do not reply to this email.`
             {/* Desktop Table View */}
             <div className="table-container hidden md:block">
               <table className="table">
-                <thead>
+              <thead>
                   <tr>
                     <th>VEHICLE NO</th>
                     <th>VEHICLE TYPE</th>
@@ -531,57 +531,57 @@ This is an automated reminder. Please do not reply to this email.`
                     <th>EMAIL</th>
                     <th>STATUS</th>
                     <th>ACTIONS</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredData.map((entry, index) => {
-                    const status = getStatusBadge(entry.expiryDate);
-                    return (
+                </tr>
+              </thead>
+              <tbody>
+                                 {filteredData.map((entry, index) => {
+                   const status = getStatusBadge(entry.expiryDate);
+                   return (
                       <tr key={entry._id}>
                         <td>{entry.policyNumber || 'N/A'}</td>
                         <td>{entry.policyType || 'N/A'}</td>
                         <td style={{ fontWeight: '500' }}>{entry.name || 'N/A'}</td>
                         <td>{entry.phone || 'N/A'}</td>
                         <td>
-                          {entry.expiryDate ? new Date(entry.expiryDate).toLocaleDateString() : 'N/A'}
-                        </td>
+                        {entry.expiryDate ? new Date(entry.expiryDate).toLocaleDateString() : 'N/A'}
+                      </td>
                         <td>{entry.email || 'N/A'}</td>
                         <td>
                           <span className={`badge badge-${status.text === 'Active' ? 'success' : status.text === 'Expiring Soon' ? 'warning' : 'danger'}`}>
-                            {status.text}
-                          </span>
-                        </td>
+                          {status.text}
+                        </span>
+                      </td>
                         <td>
                           <div className="entry-actions">
-                            <button 
-                              onClick={() => handleEdit(entry)}
+                           <button 
+                             onClick={() => handleEdit(entry)}
                               className="btn btn-sm btn-outline"
-                              title="Edit Entry"
-                            >
-                              <Edit size={16} />
-                            </button>
-                            <button 
-                              onClick={() => handleSendEmail(entry)}
+                             title="Edit Entry"
+                           >
+                             <Edit size={16} />
+                           </button>
+                           <button 
+                             onClick={() => handleSendEmail(entry)}
                               className="btn btn-sm btn-outline"
                               title="Send Email Automatically"
-                            >
-                              <Mail size={16} />
-                            </button>
-                            <button 
-                              onClick={() => handleDelete(entry)}
+                           >
+                             <Mail size={16} />
+                           </button>
+                           <button 
+                             onClick={() => handleDelete(entry)}
                               className="btn btn-sm btn-outline"
-                              title="Delete Entry"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                             title="Delete Entry"
+                           >
+                             <Trash2 size={16} />
+                           </button>
+                         </div>
+                       </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
 
             {/* Mobile Card View */}
             <div className="entries-list md:hidden">
@@ -650,8 +650,8 @@ This is an automated reminder. Please do not reply to this email.`
               })}
             </div>
           </>
-        )}
-      </div>
+                 )}
+       </div>
       </div>
 
        {/* Add Entry Modal */}

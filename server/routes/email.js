@@ -4,6 +4,19 @@ const router = express.Router();
 const database = require('../config/database');
 const emailService = require('../services/emailService');
 
+// Root: GET /api/email - basic info
+router.get('/', (req, res) => {
+  res.json({
+    message: 'Mavrix Insurance Email API',
+    endpoints: {
+      send: { method: 'POST', path: '/api/email/send' },
+      logs: { method: 'GET', path: '/api/email/logs' },
+      reminders: { method: 'POST', path: '/api/email/reminders' },
+      test: { method: 'POST', path: '/api/email/test' }
+    }
+  });
+});
+
 // Validation middleware
 const validateEmailRequest = [
   body('to').isEmail().withMessage('Valid recipient email is required'),
