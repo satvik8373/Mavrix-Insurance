@@ -9,22 +9,45 @@ class EmailService {
   }
 
   initializeTransporter() {
-    this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT),
-      secure: false,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD
-      }
-    });
+    // Check if required email environment variables are set
+    if (!process.env.SMTP_HOST || !process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+      console.warn('⚠️  Email environment variables not configured. Email sending will be disabled.');
+      this.transporter = null;
+      return;
+    }
+
+    try {
+      this.transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT) || 587,
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASSWORD
+        },
+        tls: {
+          rejectUnauthorized: false
+        }
+      });
+
+      // Test the connection
+      this.transporter.verify((error, success) => {
+        if (error) {
+          console.error('❌ Email transporter verification failed:', error.message);
+        } else {
+          console.log('✅ Email transporter configured successfully');
+        }
+      });
+    } catch (error) {
+      console.error('❌ Error initializing email transporter:', error.message);
+      this.transporter = null;
+    }
   }
 
   async sendEmail(to, subject, message, html = null) {
     try {
       // Check if email is enabled
-          if (process.env.ENABLE_EMAIL !== 'true') {
-        
+      if (process.env.ENABLE_EMAIL !== 'true') {
         // Log the email as "sent" but actually just simulated
         await this.logEmail({
           recipient: to,
@@ -40,6 +63,11 @@ class EmailService {
           response: 'Email sending is disabled - email was simulated',
           simulated: true
         };
+      }
+
+      // Check if transporter is available
+      if (!this.transporter) {
+        throw new Error('Email transporter not configured. Please check your email settings.');
       }
 
       const mailOptions = {
