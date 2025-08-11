@@ -28,7 +28,7 @@ Your **{policyType}** insurance for **{policyNumber} ({policyType})** is expirin
 **Important:** Don't let your insurance lapse. Renew today to stay protected!
 
 Thanks,
-InsureTrack Team
+Mavrix Insurance Team
 
 This is an automated reminder. Please do not reply to this email.`
   });
@@ -52,8 +52,8 @@ This is an automated reminder. Please do not reply to this email.`
   }, [isAuthenticated, navigate]);
 
   const loadSettings = () => {
-    const savedSettings = localStorage.getItem('insuretrack-settings');
-    const savedTemplate = localStorage.getItem('insuretrack-email-template');
+    const savedSettings = localStorage.getItem('mavrix-insurance-settings');
+    const savedTemplate = localStorage.getItem('mavrix-insurance-email-template');
     
     if (savedSettings) {
       setSettings(JSON.parse(savedSettings));
@@ -96,8 +96,8 @@ This is an automated reminder. Please do not reply to this email.`
   };
 
   const handleSave = () => {
-    localStorage.setItem('insuretrack-settings', JSON.stringify(settings));
-    localStorage.setItem('insuretrack-email-template', JSON.stringify(emailTemplate));
+    localStorage.setItem('mavrix-insurance-settings', JSON.stringify(settings));
+    localStorage.setItem('mavrix-insurance-email-template', JSON.stringify(emailTemplate));
     toast.success('Settings saved successfully!');
   };
 
@@ -122,7 +122,7 @@ Your **{policyType}** insurance for **{policyNumber} ({policyType})** is expirin
 **Important:** Don't let your insurance lapse. Renew today to stay protected!
 
 Thanks,
-InsureTrack Team
+Mavrix Insurance Team
 
 This is an automated reminder. Please do not reply to this email.`
     };
@@ -762,7 +762,7 @@ This is an automated reminder. Please do not reply to this email.`
             color: '#1e293b',
             marginBottom: '1rem'
           }}>
-            About InsureTrack
+            About Mavrix Insurance
           </h3>
           <div style={{ display: 'grid', gap: '0.5rem', color: '#64748b' }}>
             <p><strong style={{ color: '#374151' }}>Version:</strong> 1.0.0</p>

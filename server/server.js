@@ -88,7 +88,6 @@ if (process.env.NODE_ENV === 'production') {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Server error:', err.stack);
   res.status(500).json({ 
     error: 'Something went wrong!',
     message: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
@@ -104,25 +103,13 @@ async function startServer() {
     if (process.env.MONGODB_URI) {
       try {
         dbConnected = await database.connect();
-        if (dbConnected) {
-          console.log('✅ Connected to MongoDB successfully');
-        } else {
-          console.error('❌ Failed to connect to MongoDB. Server will start with limited functionality.');
-        }
       } catch (dbError) {
-        console.error('❌ Database connection error:', dbError.message);
-        console.log('⚠️  Server will start without database connection');
+        // Database connection failed, continue without database
       }
-    } else {
-      console.log('⚠️  MONGODB_URI not provided. Server will start without database connection.');
     }
 
     app.listen(PORT, () => {
-      console.log(`🚀 Insurance Alert Server running on port ${PORT}`);
-      console.log(`📧 Email notifications: ${process.env.ENABLE_EMAIL === 'true' ? 'Enabled' : 'Disabled'}`);
-      console.log(`🔐 Authentication: ${process.env.ENABLE_AUTH === 'true' ? 'Enabled' : 'Disabled'}`);
-      console.log(`🗄️  Database: ${dbConnected ? 'Connected' : 'Disconnected'}`);
-      console.log(`📅 Reminder days: ${process.env.REMINDER_DAYS || 7}`);
+      console.log('\x1b[32m%s\x1b[0m', '✅ Server started successfully on port ' + PORT);
     });
 
     // Only schedule cron jobs if database is connected
@@ -131,35 +118,29 @@ async function startServer() {
         const cron = require('node-cron');
         cron.schedule('0 9 * * *', async () => {
           try {
-            console.log('📧 Running scheduled reminder check...');
             const emailService = require('./services/emailService');
-            const result = await emailService.sendReminderEmails();
-            console.log(`✅ Reminder check completed: ${result.sent} sent, ${result.failed} failed`);
+            await emailService.sendReminderEmails();
           } catch (error) {
-            console.error('❌ Error in scheduled reminder check:', error);
+            // Silently handle cron job errors
           }
         });
-        console.log('📅 Scheduled daily reminders at 9:00 AM');
       } catch (cronError) {
-        console.error('❌ Error setting up cron jobs:', cronError.message);
+        // Silently handle cron setup errors
       }
     }
 
   } catch (error) {
-    console.error('❌ Failed to start server:', error);
     process.exit(1);
   }
 }
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
-  console.log('\n🛑 Shutting down gracefully...');
   await database.disconnect();
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
-  console.log('🛑 SIGTERM received, shutting down gracefully...');
   await database.disconnect();
   process.exit(0);
 });

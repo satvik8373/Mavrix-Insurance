@@ -131,14 +131,14 @@ app.get('/', async (req, res) => {
     try {
         await initializeDatabase();
         res.json({
-            message: 'Insurance Alert Server API',
+            message: 'Mavrix Insurance Server API',
             status: 'Running',
             timestamp: new Date().toISOString(),
             database: database && database.isConnected ? 'Connected' : 'Disconnected'
         });
     } catch (error) {
         res.status(500).json({
-            message: 'Insurance Alert Server API',
+            message: 'Mavrix Insurance Server API',
             status: 'Error',
             error: error.message,
             timestamp: new Date().toISOString()
@@ -168,7 +168,7 @@ app.use('*', (req, res) => {
     res.status(404).json({
         error: 'Route not found',
         path: req.originalUrl,
-        message: 'This is the Insurance Alert Server API. Use /api/* endpoints.'
+        message: 'This is the Mavrix Insurance Server API. Use /api/* endpoints.'
     });
 });
 

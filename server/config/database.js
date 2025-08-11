@@ -11,30 +11,23 @@ class Database {
   async connect() {
     try {
       if (!process.env.MONGODB_URI) {
-        console.error('❌ MONGODB_URI environment variable is not set');
         this.isConnected = false;
         return false;
       }
 
       if (!process.env.DATABASE_NAME) {
-        console.error('❌ DATABASE_NAME environment variable is not set');
         this.isConnected = false;
         return false;
       }
 
-      this.client = new MongoClient(process.env.MONGODB_URI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      });
+      this.client = new MongoClient(process.env.MONGODB_URI);
 
       await this.client.connect();
       this.db = this.client.db(process.env.DATABASE_NAME);
       this.isConnected = true;
       
-      console.log('✅ Connected to MongoDB successfully');
       return true;
     } catch (error) {
-      console.error('❌ MongoDB connection error:', error);
       this.isConnected = false;
       return false;
     }
@@ -44,7 +37,6 @@ class Database {
     if (this.client) {
       await this.client.close();
       this.isConnected = false;
-      console.log('🔌 Disconnected from MongoDB');
     }
   }
 
@@ -61,7 +53,6 @@ class Database {
       const collection = this.getCollection('insurance');
       return await collection.find({}).toArray();
     } catch (error) {
-      console.error('Error getting insurance data:', error);
       return [];
     }
   }
@@ -72,7 +63,6 @@ class Database {
       const result = await collection.insertOne(entry);
       return { ...entry, _id: result.insertedId };
     } catch (error) {
-      console.error('Error adding insurance entry:', error);
       throw error;
     }
   }
@@ -123,7 +113,6 @@ class Database {
       const updatedEntry = await collection.findOne({ _id: searchId });
       return updatedEntry;
     } catch (error) {
-      console.error('Error updating insurance entry:', error);
       throw error;
     }
   }

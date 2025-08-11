@@ -50,12 +50,16 @@ const authenticateToken = async (req, res, next) => {
 // Initialize default admin user if no users exist
 const initializeDefaultUser = async () => {
   try {
+    if (!database.isConnected) {
+      return; // Skip initialization if database is not connected
+    }
+    
     const users = await database.getUsers();
     if (users.length === 0) {
       const hashedPassword = await bcrypt.hash('admin123', 10);
       const adminUser = {
         username: 'admin',
-        email: 'admin@insuretrack.com',
+        email: 'admin@mavrixinsurance.com',
         password: hashedPassword,
         role: 'admin',
         createdAt: new Date().toISOString(),
@@ -63,10 +67,9 @@ const initializeDefaultUser = async () => {
       };
       
       await database.addUser(adminUser);
-      console.log('✅ Default admin user created (username: admin, password: admin123)');
     }
   } catch (error) {
-    console.error('Error initializing default user:', error);
+    // Silently handle initialization errors
   }
 };
 
@@ -120,7 +123,6 @@ router.post('/login', validateLogin, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Login error:', error);
     res.status(500).json({ error: 'Login failed' });
   }
 });

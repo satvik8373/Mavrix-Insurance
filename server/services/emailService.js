@@ -23,10 +23,7 @@ class EmailService {
   async sendEmail(to, subject, message, html = null) {
     try {
       // Check if email is enabled
-      if (process.env.ENABLE_EMAIL !== 'true') {
-        console.log('Email sending is disabled. Email would have been sent to:', to);
-        console.log('Subject:', subject);
-        console.log('Message:', message);
+          if (process.env.ENABLE_EMAIL !== 'true') {
         
         // Log the email as "sent" but actually just simulated
         await this.logEmail({
@@ -390,7 +387,7 @@ class EmailService {
         
         <div class="footer">
             <p>Thanks,</p>
-            <p class="team-name">InsureTrack Team</p>
+            <p class="team-name">Mavrix Insurance Team</p>
             <p class="footer-note">This is an automated reminder. Please do not reply to this email.</p>
         </div>
     </div>
@@ -415,7 +412,7 @@ Policy Details:
 Please contact your insurance provider to renew your policy before it expires.
 
 Best regards,
-InsureTrack Team
+        Mavrix Insurance Team
     `;
 
     return { text: textMessage, html: htmlMessage };
@@ -423,14 +420,14 @@ InsureTrack Team
 
   async sendTestEmail(to) {
     try {
-      const subject = 'Insurance Alert System - Test Email';
+      const subject = 'Mavrix Insurance System - Test Email';
       const message = `
-This is a test email from the Insurance Alert System.
+This is a test email from the Mavrix Insurance System.
 
 If you received this email, the email configuration is working correctly.
 
 Best regards,
-Insurance Alert System
+        Mavrix Insurance System
       `;
 
       return await this.sendEmail(to, subject, message);

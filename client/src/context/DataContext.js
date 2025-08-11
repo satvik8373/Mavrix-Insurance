@@ -49,48 +49,35 @@ export const DataProvider = ({ children }) => {
   }, []);
 
   const loadData = async () => {
-    console.log('🔄 Loading data from API...');
-    console.log('📡 API_BASE_URL:', API_BASE_URL);
     setLoading(true);
     setError(null);
     
     try {
       // Try to load from API first
-      console.log('📞 Making API calls...');
       const [insuranceResponse, logsResponse] = await Promise.allSettled([
         apiCall('/insurance'),
         apiCall('/email/logs')
       ]);
 
-      console.log('📊 Insurance response:', insuranceResponse);
-      console.log('📧 Logs response:', logsResponse);
-
       if (insuranceResponse.status === 'fulfilled') {
         const data = insuranceResponse.value;
-        console.log('✅ Insurance data received:', data);
         // Ensure data is always an array
         const safeData = Array.isArray(data) ? data : [];
         setInsuranceData(safeData);
-        console.log('💾 Insurance data set:', safeData.length, 'entries');
       } else {
-        console.log('❌ Insurance API failed, using localStorage fallback');
-        console.log('Error:', insuranceResponse.reason);
         // Fallback to localStorage
         const savedData = localStorage.getItem('insuranceData');
         if (savedData) {
           const parsed = JSON.parse(savedData);
           setInsuranceData(Array.isArray(parsed) ? parsed : []);
-          console.log('💾 Loaded from localStorage:', parsed.length, 'entries');
         }
       }
 
       if (logsResponse.status === 'fulfilled') {
         const logs = logsResponse.value;
-        console.log('✅ Email logs received:', logs);
         // Ensure logs is always an array
         setEmailLogs(Array.isArray(logs) ? logs : []);
       } else {
-        console.log('❌ Email logs API failed, using localStorage fallback');
         // Fallback to localStorage
         const savedLogs = localStorage.getItem('emailLogs');
         if (savedLogs) {
@@ -99,7 +86,6 @@ export const DataProvider = ({ children }) => {
         }
       }
     } catch (error) {
-      console.error('❌ Error loading data:', error);
       setError(error.message);
       // Fallback to localStorage
       const savedData = localStorage.getItem('insuranceData');
@@ -108,16 +94,13 @@ export const DataProvider = ({ children }) => {
       if (savedData) {
         const parsed = JSON.parse(savedData);
         setInsuranceData(Array.isArray(parsed) ? parsed : []);
-        console.log('💾 Fallback: Loaded insurance data from localStorage');
       }
       if (savedLogs) {
         const parsed = JSON.parse(savedLogs);
         setEmailLogs(Array.isArray(parsed) ? parsed : []);
-        console.log('💾 Fallback: Loaded email logs from localStorage');
       }
     } finally {
       setLoading(false);
-      console.log('✅ Data loading completed');
     }
   };
 

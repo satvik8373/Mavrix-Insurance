@@ -109,10 +109,10 @@ const Login = () => {
             color: '#1e293b', 
             marginBottom: '0.25rem' 
           }}>
-            InsureTrack
+            Mavrix Insurance
           </h1>
           <p style={{ color: '#64748b', fontSize: '1rem' }}>
-            Admin Portal
+            Insurance Management System
           </p>
         </div>
 
@@ -297,7 +297,7 @@ const Login = () => {
           color: 'rgba(255,255,255,0.8)',
           fontSize: '0.8rem'
         }}>
-          InsureTrack Admin Portal v1.0
+                      Mavrix Insurance Admin Portal v1.0
         </div>
       </div>
     </div>

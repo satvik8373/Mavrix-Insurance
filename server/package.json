@@ -1,7 +1,7 @@
 {
-  "name": "insuretrack-server",
+  "name": "mavrix-insurance-server",
   "version": "1.0.0",
-  "description": "Insurance Alert Server API",
+      "description": "Mavrix Insurance Server API",
   "main": "server.js",
   "engines": {
     "node": ">=18.0.0"
@@ -33,6 +33,6 @@
     "express",
     "mongodb"
   ],
-  "author": "InsureTrack Team",
+      "author": "Mavrix Insurance Team",
   "license": "MIT"
 }
