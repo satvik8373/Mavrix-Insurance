@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 
-// PWA Icon Display Enhancement
+// PWA Icon Display Enhancement - Maximum Size Borderless
 const enhancePWAIcons = () => {
   // Ensure all icon links are properly loaded
   const iconLinks = document.querySelectorAll('link[rel="icon"], link[rel="apple-touch-icon"]');
@@ -20,6 +20,16 @@ const enhancePWAIcons = () => {
     link.style.outline = 'none';
     link.style.filter = 'none';
     link.style.transform = 'none';
+    
+    // Ensure maximum size display
+    link.style.padding = '0';
+    link.style.margin = '0';
+    link.style.width = '100%';
+    link.style.height = '100%';
+    link.style.borderRadius = '0';
+    link.style.objectFit = 'contain';
+    link.style.objectPosition = 'center';
+    link.style.clipPath = 'none';
   });
 
   // Force icon refresh for better display

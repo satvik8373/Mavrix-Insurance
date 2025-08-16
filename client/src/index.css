@@ -662,31 +662,13 @@ p {
 
 /* PWA Specific Styles */
 
-/* PWA Icon Display - Full Mode */
+/* PWA Icon Display - Full Mode - Maximum Size */
 link[rel="icon"],
 link[rel="apple-touch-icon"] {
   -webkit-mask-image: none !important;
   mask-image: none !important;
-  -webkit-mask-size: auto !important;
-  mask-size: auto !important;
-  -webkit-mask-repeat: initial !important;
-  mask-repeat: initial !important;
-  -webkit-mask-position: initial !important;
-  mask-position: initial !important;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  outline: none !important;
-}
-
-/* Ensure PWA icons display in full mode without masking */
-[rel="icon"],
-[rel="apple-touch-icon"],
-[rel="mask-icon"] {
-  -webkit-mask: none !important;
-  mask: none !important;
-  -webkit-mask-size: auto !important;
-  mask-size: auto !important;
+  -webkit-mask-size: 100% 100% !important;
+  mask-size: 100% 100% !important;
   -webkit-mask-repeat: no-repeat !important;
   mask-repeat: no-repeat !important;
   -webkit-mask-position: center !important;
@@ -695,6 +677,36 @@ link[rel="apple-touch-icon"] {
   border: none !important;
   box-shadow: none !important;
   outline: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+/* Ensure PWA icons display in full mode without masking - Maximum Size */
+[rel="icon"],
+[rel="apple-touch-icon"],
+[rel="mask-icon"] {
+  -webkit-mask: none !important;
+  mask: none !important;
+  -webkit-mask-size: 100% 100% !important;
+  mask-size: 100% 100% !important;
+  -webkit-mask-repeat: no-repeat !important;
+  mask-repeat: no-repeat !important;
+  -webkit-mask-position: center !important;
+  mask-position: center !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  object-position: center !important;
 }
 
 /* PWA Install Prompt */
@@ -854,7 +866,7 @@ link[rel="apple-touch-icon"] {
   }
 }
 
-/* PWA Icon Display Enhancements */
+/* PWA Icon Display Enhancements - Maximum Size Borderless */
 /* Ensure icons display in full mode across all browsers and devices */
 link[rel="icon"],
 link[rel="apple-touch-icon"],
@@ -863,8 +875,8 @@ link[rel="mask-icon"] {
   mask: none !important;
   -webkit-mask-image: none !important;
   mask-image: none !important;
-  -webkit-mask-size: auto !important;
-  mask-size: auto !important;
+  -webkit-mask-size: 100% 100% !important;
+  mask-size: 100% 100% !important;
   -webkit-mask-repeat: no-repeat !important;
   mask-repeat: no-repeat !important;
   -webkit-mask-position: center !important;
@@ -875,41 +887,66 @@ link[rel="mask-icon"] {
   outline: none !important;
   filter: none !important;
   transform: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  border-radius: 0 !important;
+  clip-path: none !important;
 }
 
-/* Safari-specific PWA icon fixes */
+/* Safari-specific PWA icon fixes - Maximum Size */
 @supports (-webkit-appearance: none) {
   link[rel="icon"],
   link[rel="apple-touch-icon"] {
     -webkit-mask: none !important;
     -webkit-mask-image: none !important;
-    -webkit-mask-size: auto !important;
+    -webkit-mask-size: 100% 100% !important;
     -webkit-mask-repeat: no-repeat !important;
     -webkit-mask-position: center !important;
     background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 0 !important;
   }
 }
 
-/* Firefox-specific PWA icon fixes */
+/* Firefox-specific PWA icon fixes - Maximum Size */
 @supports (-moz-appearance: none) {
   link[rel="icon"],
   link[rel="apple-touch-icon"] {
     mask: none !important;
     mask-image: none !important;
-    mask-size: auto !important;
+    mask-size: 100% 100% !important;
     mask-repeat: no-repeat !important;
     mask-position: center !important;
     background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 0 !important;
   }
 }
 
-/* Chrome/Edge-specific PWA icon fixes */
+/* Chrome/Edge-specific PWA icon fixes - Maximum Size */
 @supports (-webkit-appearance: none) and (not (-moz-appearance: none)) {
   link[rel="icon"],
   link[rel="apple-touch-icon"] {
     -webkit-mask: none !important;
     mask: none !important;
     background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 0 !important;
+    object-fit: contain !important;
+    object-position: center !important;
   }
 }
 
