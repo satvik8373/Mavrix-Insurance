@@ -1,7 +1,7 @@
 {
   "name": "mavrix-insurance-client",
   "version": "1.0.0",
-      "description": "Mavrix Insurance Management System",
+  "description": "Mavrix Insurance Management System",
   "private": true,
   "engines": {
     "node": ">=18.0.0"
@@ -11,14 +11,16 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "vercel-build": "npm run build"
+    "vercel-build": "npm run build",
+    "generate-icons": "node generate-mavrix-icons.mjs"
   },
   "dependencies": {
+    "lucide-react": "^0.294.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.20.1",
     "react-hot-toast": "^2.4.1",
-    "lucide-react": "^0.294.0",
+    "react-router-dom": "^6.20.1",
+    "sharp": "^0.34.3",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
@@ -42,6 +44,6 @@
     "react",
     "dashboard"
   ],
-      "author": "Mavrix Insurance Team",
+  "author": "Mavrix Insurance Team",
   "license": "MIT"
 }
