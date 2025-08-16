@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 
-// PWA Icon Display Enhancement - Maximum Size Borderless
+// PWA Icon Display Enhancement - Truly Borderless
 const enhancePWAIcons = () => {
   // Ensure all icon links are properly loaded
   const iconLinks = document.querySelectorAll('link[rel="icon"], link[rel="apple-touch-icon"]');
@@ -30,6 +30,33 @@ const enhancePWAIcons = () => {
     link.style.objectFit = 'contain';
     link.style.objectPosition = 'center';
     link.style.clipPath = 'none';
+  });
+
+  // Also target all icon images for borderless display
+  const iconImages = document.querySelectorAll('img[src*="icon"], img[src*="favicon"]');
+  iconImages.forEach(img => {
+    img.style.background = 'transparent';
+    img.style.border = 'none';
+    img.style.boxShadow = 'none';
+    img.style.outline = 'none';
+    img.style.padding = '0';
+    img.style.margin = '0';
+    img.style.borderRadius = '0';
+    img.style.clipPath = 'none';
+    img.style.filter = 'none';
+    img.style.transform = 'none';
+  });
+
+  // Remove any background elements that might create borders
+  const backgroundElements = document.querySelectorAll('[style*="background"], [class*="background"]');
+  backgroundElements.forEach(el => {
+    if (el.textContent.toLowerCase().includes('icon') || 
+        el.className.toLowerCase().includes('icon') ||
+        el.id.toLowerCase().includes('icon')) {
+      el.style.background = 'transparent';
+      el.style.border = 'none';
+      el.style.boxShadow = 'none';
+    }
   });
 
   // Force icon refresh for better display

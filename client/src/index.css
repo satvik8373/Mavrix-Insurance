@@ -867,7 +867,7 @@ link[rel="apple-touch-icon"] {
   }
 }
 
-/* PWA Icon Display Enhancements - Maximum Size Borderless */
+/* PWA Icon Display Enhancements - Truly Borderless */
 /* Ensure icons display in full mode across all browsers and devices */
 link[rel="icon"],
 link[rel="apple-touch-icon"],
@@ -894,6 +894,38 @@ link[rel="mask-icon"] {
   height: 100% !important;
   object-fit: contain !important;
   object-position: center !important;
+  border-radius: 0 !important;
+  clip-path: none !important;
+}
+
+/* Additional borderless icon styles for all icon elements */
+[rel="icon"],
+[rel="apple-touch-icon"],
+[rel="mask-icon"],
+img[src*="icon"],
+img[src*="favicon"] {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  clip-path: none !important;
+  filter: none !important;
+  transform: none !important;
+}
+
+/* PWA specific borderless styles */
+.pwa-icon,
+.app-icon,
+.home-screen-icon {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
   border-radius: 0 !important;
   clip-path: none !important;
 }
