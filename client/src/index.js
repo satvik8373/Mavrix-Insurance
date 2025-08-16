@@ -3,106 +3,26 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 
-// PWA Icon Display Enhancement - Truly Borderless
+// PWA Icon Display Enhancement - FULL BLEED Optimized
 const enhancePWAIcons = () => {
-  // Ensure all icon links are properly loaded
-  const iconLinks = document.querySelectorAll('link[rel="icon"], link[rel="apple-touch-icon"]');
+  // Target all icon elements for full-bleed display
+  const iconElements = document.querySelectorAll('link[rel="icon"], link[rel="apple-touch-icon"], img[src*="icon"], [class*="icon"], [class*="app-icon"]');
   
-  iconLinks.forEach(link => {
-    // Remove any masking or styling that might interfere with icon display
-    link.style.webkitMask = 'none';
-    link.style.mask = 'none';
-    link.style.webkitMaskImage = 'none';
-    link.style.maskImage = 'none';
-    link.style.background = 'transparent';
-    link.style.border = 'none';
-    link.style.boxShadow = 'none';
-    link.style.outline = 'none';
-    link.style.filter = 'none';
-    link.style.transform = 'none';
+  iconElements.forEach(element => {
+    // Remove all borders and backgrounds
+    element.style.border = 'none';
+    element.style.boxShadow = 'none';
+    element.style.outline = 'none';
+    element.style.background = 'transparent';
+    element.style.borderRadius = '0';
+    element.style.webkitAppearance = 'none';
+    element.style.appearance = 'none';
     
-    // Ensure maximum size display
-    link.style.padding = '0';
-    link.style.margin = '0';
-    link.style.width = '100%';
-    link.style.height = '100%';
-    link.style.borderRadius = '0';
-    link.style.objectFit = 'contain';
-    link.style.objectPosition = 'center';
-    link.style.clipPath = 'none';
+    // Ensure full-bleed display
+    element.style.backgroundSize = 'contain';
+    element.style.backgroundPosition = 'center';
+    element.style.backgroundRepeat = 'no-repeat';
   });
-
-  // Also target all icon images for borderless display
-  const iconImages = document.querySelectorAll('img[src*="icon"], img[src*="favicon"]');
-  iconImages.forEach(img => {
-    img.style.background = 'transparent';
-    img.style.border = 'none';
-    img.style.boxShadow = 'none';
-    img.style.outline = 'none';
-    img.style.padding = '0';
-    img.style.margin = '0';
-    img.style.borderRadius = '0';
-    img.style.clipPath = 'none';
-    img.style.filter = 'contrast(1.1) brightness(1.1)';
-    img.style.transform = 'none';
-    
-    // Remove white borders using CSS
-    img.style.mixBlendMode = 'multiply';
-    img.style.isolation = 'isolate';
-  });
-
-  // Remove any background elements that might create borders
-  const backgroundElements = document.querySelectorAll('[style*="background"], [class*="background"]');
-  backgroundElements.forEach(el => {
-    if (el.textContent.toLowerCase().includes('icon') || 
-        el.className.toLowerCase().includes('icon') ||
-        el.id.toLowerCase().includes('icon')) {
-      el.style.background = 'transparent';
-      el.style.border = 'none';
-      el.style.boxShadow = 'none';
-    }
-  });
-
-  // Remove white borders from icon images using canvas
-  const removeIconBorders = () => {
-    const iconImages = document.querySelectorAll('img[src*="icon"], img[src*="favicon"]');
-    iconImages.forEach(img => {
-      if (img.complete && img.naturalWidth > 0) {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        
-        // Draw the image
-        ctx.drawImage(img, 0, 0);
-        
-        // Get image data to remove white borders
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imageData.data;
-        
-        // Remove white borders by making them transparent
-        for (let i = 0; i < data.length; i += 4) {
-          const r = data[i];
-          const g = data[i + 1];
-          const b = data[i + 2];
-          
-          // If pixel is white or very light, make it transparent
-          if (r > 240 && g > 240 && b > 240) {
-            data[i + 3] = 0; // Set alpha to 0 (transparent)
-          }
-        }
-        
-        ctx.putImageData(imageData, 0, 0);
-        
-        // Replace the image with the borderless version
-        const newSrc = canvas.toDataURL('image/png');
-        img.src = newSrc;
-      }
-    });
-  };
-
-  // Run border removal after images load
-  setTimeout(removeIconBorders, 1000);
 
   // Force icon refresh for better display
   const favicon = document.querySelector('link[rel="icon"]');
