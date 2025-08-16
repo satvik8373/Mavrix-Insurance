@@ -898,6 +898,22 @@ link[rel="mask-icon"] {
   clip-path: none !important;
 }
 
+/* Remove borders from icon images using CSS filters */
+img[src*="icon"],
+img[src*="favicon"],
+link[rel="icon"],
+link[rel="apple-touch-icon"] {
+  filter: contrast(1.1) brightness(1.1) !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  clip-path: none !important;
+}
+
 /* Additional borderless icon styles for all icon elements */
 [rel="icon"],
 [rel="apple-touch-icon"],
@@ -928,6 +944,45 @@ img[src*="favicon"] {
   margin: 0 !important;
   border-radius: 0 !important;
   clip-path: none !important;
+}
+
+/* Remove white borders from PWA icons */
+[data-icon],
+[class*="icon"],
+[class*="app-icon"],
+[class*="pwa-icon"] {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  clip-path: none !important;
+  filter: contrast(1.1) brightness(1.1) !important;
+}
+
+/* Force remove any remaining borders */
+* {
+  --icon-border: none !important;
+  --icon-background: transparent !important;
+}
+
+/* PWA manifest icon overrides */
+@media (display-mode: standalone) {
+  [rel="icon"],
+  [rel="apple-touch-icon"],
+  img[src*="icon"] {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    clip-path: none !important;
+    filter: contrast(1.1) brightness(1.1) !important;
+  }
 }
 
 /* Safari-specific PWA icon fixes - Maximum Size */

@@ -43,8 +43,12 @@ const enhancePWAIcons = () => {
     img.style.margin = '0';
     img.style.borderRadius = '0';
     img.style.clipPath = 'none';
-    img.style.filter = 'none';
+    img.style.filter = 'contrast(1.1) brightness(1.1)';
     img.style.transform = 'none';
+    
+    // Remove white borders using CSS
+    img.style.mixBlendMode = 'multiply';
+    img.style.isolation = 'isolate';
   });
 
   // Remove any background elements that might create borders
@@ -58,6 +62,47 @@ const enhancePWAIcons = () => {
       el.style.boxShadow = 'none';
     }
   });
+
+  // Remove white borders from icon images using canvas
+  const removeIconBorders = () => {
+    const iconImages = document.querySelectorAll('img[src*="icon"], img[src*="favicon"]');
+    iconImages.forEach(img => {
+      if (img.complete && img.naturalWidth > 0) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        
+        // Draw the image
+        ctx.drawImage(img, 0, 0);
+        
+        // Get image data to remove white borders
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        
+        // Remove white borders by making them transparent
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          
+          // If pixel is white or very light, make it transparent
+          if (r > 240 && g > 240 && b > 240) {
+            data[i + 3] = 0; // Set alpha to 0 (transparent)
+          }
+        }
+        
+        ctx.putImageData(imageData, 0, 0);
+        
+        // Replace the image with the borderless version
+        const newSrc = canvas.toDataURL('image/png');
+        img.src = newSrc;
+      }
+    });
+  };
+
+  // Run border removal after images load
+  setTimeout(removeIconBorders, 1000);
 
   // Force icon refresh for better display
   const favicon = document.querySelector('link[rel="icon"]');
