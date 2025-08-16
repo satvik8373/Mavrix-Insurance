@@ -7,12 +7,9 @@ import Upload from './pages/Upload';
 import Logs from './pages/Logs';
 import Settings from './pages/Settings';
 import Login from './components/Login';
-import PWAInstallPrompt from './components/PWAInstallPrompt';
 import { AuthProvider } from './context/AuthContext';
 import { DataProvider } from './context/DataContext';
 import './App.css';
-import './styles/ios-pwa.css'; // iOS PWA specific styles
-import './styles/ios-pwa-prevention.css'; // iOS PWA prevention styles
 
 function App() {
   return (
@@ -21,7 +18,6 @@ function App() {
         <Router>
           <div className="App">
             <Toaster position="top-right" />
-            <PWAInstallPrompt />
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/" element={
