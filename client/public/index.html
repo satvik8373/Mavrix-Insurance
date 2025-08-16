@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%233b82f6'/%3E%3Cpath d='M8 16h16M16 8v16' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
     <meta name="theme-color" content="#3b82f6" />
     <meta name="description" content="Mavrix Insurance - Insurance Management System" />
@@ -14,70 +15,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Mavrix Insurance" />
     
-    <!-- Responsive Design -->
-    <style>
-      * {
-        box-sizing: border-box;
-      }
-      
-      body {
-        margin: 0;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-          'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-          sans-serif;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        overflow-x: hidden;
-      }
-      
-      /* Mobile Responsive Styles */
-      @media (max-width: 768px) {
-        body {
-          font-size: 14px;
-        }
-      }
-      
-      @media (max-width: 480px) {
-        body {
-          font-size: 13px;
-        }
-      }
-      
-      /* PWA Install Prompt Styles */
-      .pwa-install-prompt {
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
-        right: 20px;
-        background: #3b82f6;
-        color: white;
-        padding: 16px;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-        display: none;
-        align-items: center;
-        justify-content: space-between;
-        z-index: 1000;
-      }
-      
-      .pwa-install-prompt button {
-        background: white;
-        color: #3b82f6;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 6px;
-        font-weight: 600;
-        cursor: pointer;
-      }
-      
-      .pwa-install-prompt .close-btn {
-        background: transparent;
-        color: white;
-        border: 1px solid rgba(255,255,255,0.3);
-        margin-left: 8px;
-      }
-    </style>
-    
     <title>Mavrix Insurance - Insurance Management</title>
   </head>
   <body>
@@ -85,15 +22,13 @@
     <div id="root"></div>
     
     <!-- PWA Install Prompt -->
-    <div id="pwa-install-prompt" class="pwa-install-prompt">
-      <div>
+    <div id="pwa-install-prompt" style="display: none; position: fixed; bottom: 20px; left: 20px; right: 20px; background: #3b82f6; color: white; padding: 16px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 1000; text-align: center;">
+      <div style="margin-bottom: 12px;">
         <strong>Install Mavrix Insurance</strong><br>
         <small>Add to home screen for quick access</small>
       </div>
-      <div>
-        <button id="pwa-install-btn">Install</button>
-        <button id="pwa-dismiss-btn" class="close-btn">×</button>
-      </div>
+      <button id="pwa-install-btn" style="background: white; color: #3b82f6; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 8px;">Install</button>
+      <button id="pwa-dismiss-btn" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.3); padding: 8px 16px; border-radius: 6px; cursor: pointer;">Dismiss</button>
     </div>
     
     <script>
@@ -102,10 +37,10 @@
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js')
             .then((registration) => {
-              console.log('SW registered: ', registration);
+              console.log('SW registered successfully:', registration);
             })
             .catch((registrationError) => {
-              console.log('SW registration failed: ', registrationError);
+              console.log('SW registration failed:', registrationError);
             });
         });
       }
@@ -116,22 +51,25 @@
       const installBtn = document.getElementById('pwa-install-btn');
       const dismissBtn = document.getElementById('pwa-dismiss-btn');
       
+      // Show install prompt for supported browsers
       window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        installPrompt.style.display = 'flex';
+        installPrompt.style.display = 'block';
       });
       
+      // Handle install button click
       installBtn.addEventListener('click', async () => {
         if (deferredPrompt) {
           deferredPrompt.prompt();
           const { outcome } = await deferredPrompt.userChoice;
-          console.log(`User response to the install prompt: ${outcome}`);
+          console.log('Install outcome:', outcome);
           deferredPrompt = null;
           installPrompt.style.display = 'none';
         }
       });
       
+      // Handle dismiss button click
       dismissBtn.addEventListener('click', () => {
         installPrompt.style.display = 'none';
         localStorage.setItem('pwa-dismissed', 'true');
@@ -140,6 +78,22 @@
       // Hide prompt if previously dismissed
       if (localStorage.getItem('pwa-dismissed') === 'true') {
         installPrompt.style.display = 'none';
+      }
+      
+      // iOS specific handling
+      if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+        installPrompt.innerHTML = `
+          <div style="margin-bottom: 12px;">
+            <strong>Add to Home Screen</strong><br>
+            <small>Tap the share button and select "Add to Home Screen"</small>
+          </div>
+          <button id="ios-dismiss" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.3); padding: 8px 16px; border-radius: 6px; cursor: pointer;">Got it</button>
+        `;
+        installPrompt.style.display = 'block';
+        document.getElementById('ios-dismiss').addEventListener('click', () => {
+          installPrompt.style.display = 'none';
+          localStorage.setItem('pwa-dismissed', 'true');
+        });
       }
     </script>
   </body>
