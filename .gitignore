@@ -16,6 +16,9 @@ build/
 dist/
 out/
 
+# React build output (but keep source files)
+client/build/
+
 # IDE and editor files
 .vscode/
 .idea/
@@ -85,7 +88,8 @@ jspm_packages/
 
 # Gatsby files
 .cache/
-public
+# Only ignore Gatsby public directory, not React app public directory
+# public
 
 # Storybook build outputs
 .out
