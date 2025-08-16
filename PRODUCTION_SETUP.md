@@ -68,22 +68,23 @@ node generate-pwa-icons.js
 
 ### 2. Convert SVG to PNG (Recommended)
 
-For PWA support, the project now uses SVG icons by default:
+For better PWA support, convert the generated SVG icons to PNG:
 
-1. **Current Setup**: The project uses SVG icons for better quality and smaller file sizes:
-   - `icon-192.svg` (192x192)
-   - `icon-512.svg` (512x512)
-   - `icon.png` (main icon as fallback)
-
-2. **SVG Benefits**:
-   - Scalable to any size without quality loss
-   - Smaller file sizes
-   - Better performance
-   - Modern browser support
-
-3. **If PNG is required**: Use online converters like:
+1. **Online Converter**: Use online tools like:
    - https://convertio.co/svg-png/
    - https://cloudconvert.com/svg-to-png
+
+2. **Convert these files**:
+   - `icon-192.svg` → `icon-192.png`
+   - `icon-512.svg` → `icon-512.png`
+
+3. **Update manifest.json** to use PNG files:
+```json
+{
+  "src": "icon-192.png",
+  "type": "image/png"
+}
+```
 
 ### 3. PWA Testing
 
