@@ -1,217 +1,152 @@
-# 🔧 Troubleshooting Guide - 404 Server Issues
+# 🐛 Troubleshooting Guide - Mavrix Insurance
 
-## 🚨 Current Issue
-- **Client URL**: https://mavrix-insurance.vercel.app/
-- **Server URL**: https://mavrix-insurance-api.vercel.app/
-- **Error**: 404 NOT_FOUND when accessing API endpoints
+## Common Issues and Solutions
 
-## 🔍 Debugging Steps
+### PWA Icon Download Errors
 
-### 1. Test Server Health
-Visit these URLs to check if the server is responding:
+**Problem**: `Error while trying to use the following icon from the Manifest: https://your-domain.vercel.app/icon.png (Download error or resource isn't a valid image)`
 
-```
-https://mavrix-insurance-api.vercel.app/api/health
-https://mavrix-insurance-api.vercel.app/api/test
-```
+**Causes**:
+1. **Corrupted PNG file** - The icon.png file is damaged or invalid
+2. **Vercel rewrite rules** - All routes redirecting to index.html
+3. **File serving issues** - Static assets not being served correctly
+4. **Invalid PNG format** - File doesn't follow PNG specifications
 
-**Expected Response:**
-```json
-{
-  "status": "OK",
-  "timestamp": "2024-01-01T00:00:00.000Z",
-  "environment": "production"
-}
-```
+**Solutions**:
 
-### 2. Test API Endpoints
-Try these specific endpoints:
+#### 1. Fix Vercel Configuration
+Update your `vercel.json` to properly handle static assets:
 
-```
-GET https://mavrix-insurance-api.vercel.app/api/insurance
-GET https://mavrix-insurance-api.vercel.app/api/email/logs
-POST https://mavrix-insurance-api.vercel.app/api/auth/login
-```
-
-### 3. Check Vercel Deployment
-
-#### Server Deployment Issues:
-1. **Go to Vercel Dashboard**: https://vercel.com/dashboard
-2. **Select your server project**: `mavrix-insurance-api`
-3. **Check Deployment Logs**:
-   - Look for build errors
-   - Check if `server.js` is being found
-   - Verify environment variables are set
-
-#### Required Environment Variables:
-```env
-MONGODB_URI=mongodb+srv://your-username:your-password@your-cluster.mongodb.net/your-database
-DATABASE_NAME=insuretrack
-NODE_ENV=production
-ENABLE_EMAIL=false
-ENABLE_AUTH=true
-REMINDER_DAYS=7
-```
-
-### 4. Check Vercel Configuration
-
-#### Server vercel.json:
-```json
-{
-  "version": 2,
-  "builds": [
-    {
-      "src": "server.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/server.js"
-    }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
-}
-```
-
-#### Client vercel.json:
 ```json
 {
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://mavrix-insurance-api.vercel.app/api/$1"
+      "destination": "https://your-api-domain.vercel.app/api/$1"
+    },
+    {
+      "source": "/icon.png",
+      "destination": "/icon.png"
+    },
+    {
+      "source": "/manifest.json",
+      "destination": "/manifest.json"
     },
     {
       "source": "/(.*)",
       "destination": "/index.html"
     }
+  ],
+  "headers": [
+    {
+      "source": "/icon.png",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "image/png"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000"
+        }
+      ]
+    }
   ]
 }
 ```
 
-### 5. Common Issues & Solutions
+#### 2. Verify Icon File Integrity
+- Check if the icon.png file is actually a valid PNG
+- Ensure the file size is reasonable (should be > 1KB)
+- Try opening the file in an image editor
 
-#### Issue 1: Server Not Deployed
-**Symptoms**: All endpoints return 404
-**Solution**: 
-1. Check Vercel dashboard for deployment status
-2. Redeploy the server project
-3. Verify `server.js` is in the root of the server directory
+#### 3. Test Icon Accessibility
+Use the test page: `/test-icon.html` to verify:
+- Icon file is accessible via HTTP
+- Content-Type is correct
+- File loads without errors
 
-#### Issue 2: Environment Variables Missing
-**Symptoms**: Server responds but database operations fail
-**Solution**:
-1. Add all required environment variables in Vercel dashboard
-2. Redeploy after adding variables
+#### 4. Alternative Solutions
+If the PNG continues to fail:
+- Convert to a different format (SVG, WebP)
+- Use a different icon file
+- Check for file corruption
 
-#### Issue 3: CORS Issues
-**Symptoms**: Client can't connect to server
-**Solution**:
-1. Verify CORS configuration in `server.js`
-2. Check that client URL is in allowed origins
+### Email Issues
 
-#### Issue 4: Route Configuration
-**Symptoms**: Some endpoints work, others don't
-**Solution**:
-1. Check that all route files exist
-2. Verify route registration in `server.js`
+**Problem**: Emails not sending
+**Solutions**:
+1. Check environment variables
+2. Verify SMTP credentials
+3. Check email provider limits
 
-### 6. Manual Testing
+**Problem**: Gmail authentication failed
+**Solutions**:
+1. Enable 2FA on Gmail
+2. Use App Password, not regular password
+3. Disable "Less secure app access"
 
-#### Test with curl:
-```bash
-# Test health endpoint
-curl https://mavrix-insurance-api.vercel.app/api/health
+### PWA Installation Issues
 
-# Test insurance endpoint
-curl https://mavrix-insurance-api.vercel.app/api/insurance
+**Problem**: App not installing as PWA
+**Solutions**:
+1. Verify manifest.json is valid
+2. Check all icons are accessible
+3. Ensure HTTPS is enabled
+4. Clear browser cache
 
-# Test with headers
-curl -H "Content-Type: application/json" \
-     -X POST \
-     -d '{"username":"admin","password":"admin123"}' \
-     https://mavrix-insurance-api.vercel.app/api/auth/login
-```
+**Problem**: Service worker not registering
+**Solutions**:
+1. Check sw.js file is in public folder
+2. Verify service worker registration in index.html
+3. Check browser console for errors
 
-#### Test with browser:
-1. Open browser developer tools
-2. Go to Network tab
-3. Visit https://mavrix-insurance.vercel.app/
-4. Check which requests are failing
+### Build Issues
 
-### 7. Redeployment Steps
+**Problem**: Build fails
+**Solutions**:
+1. Check for syntax errors in code
+2. Verify all dependencies are installed
+3. Clear node_modules and reinstall
+4. Check for conflicting package versions
 
-#### Server Redeployment:
-1. Push changes to GitHub
-2. Go to Vercel dashboard
-3. Select server project
-4. Click "Redeploy"
-5. Check deployment logs
+**Problem**: Build succeeds but icons don't work
+**Solutions**:
+1. Verify icon files are in build directory
+2. Check file permissions
+3. Test locally before deploying
+4. Verify Vercel configuration
 
-#### Client Redeployment:
-1. Push changes to GitHub
-2. Go to Vercel dashboard
-3. Select client project
-4. Click "Redeploy"
+## Testing and Debugging
 
-### 8. Environment Variable Checklist
+### Local Testing
+1. Run `npm run build` locally
+2. Test with `serve -s build`
+3. Check browser console for errors
+4. Verify all assets load correctly
 
-#### Server Variables (Vercel Dashboard):
-- [ ] `MONGODB_URI`
-- [ ] `DATABASE_NAME`
-- [ ] `NODE_ENV=production`
-- [ ] `ENABLE_EMAIL=false`
-- [ ] `ENABLE_AUTH=true`
-- [ ] `REMINDER_DAYS=7`
+### Vercel Deployment Testing
+1. Deploy to Vercel
+2. Check Vercel build logs
+3. Test deployed site
+4. Use browser DevTools to debug
 
-#### Client Variables (Vercel Dashboard):
-- [ ] `REACT_APP_API_URL=https://mavrix-insurance-api.vercel.app/api`
-- [ ] `REACT_APP_ENVIRONMENT=production`
+### Icon Testing
+1. Access `/test-icon.html` on deployed site
+2. Check network tab for failed requests
+3. Verify Content-Type headers
+4. Test different icon sizes
 
-### 9. Database Connection Test
+## Getting Help
 
-If the server is responding but data operations fail:
+If you continue to experience issues:
 
-1. **Check MongoDB Atlas**:
-   - Verify cluster is running
-   - Check connection string
-   - Ensure IP whitelist includes Vercel IPs
+1. **Check the logs**: Look at browser console and Vercel build logs
+2. **Test locally**: Ensure the issue isn't local-only
+3. **Verify configuration**: Double-check all config files
+4. **Check file integrity**: Ensure all assets are valid
+5. **Review documentation**: Check this guide and other docs
 
-2. **Test Database Connection**:
-   - Visit `/api/test` endpoint
-   - Check if `database` field shows "Connected"
+---
 
-### 10. Final Verification
-
-After fixing issues:
-
-1. **Test Server**: Visit `/api/health` and `/api/test`
-2. **Test Client**: Visit client URL and try to log in
-3. **Test API**: Try adding/editing insurance entries
-4. **Check Logs**: Monitor Vercel function logs for errors
-
-## 📞 Support
-
-If issues persist:
-1. Check Vercel function logs
-2. Verify all environment variables
-3. Test endpoints individually
-4. Check MongoDB connection
-5. Review deployment configuration
-
-## 🔄 Quick Fix Commands
-
-```bash
-# Force redeploy server
-vercel --prod
-
-# Check server logs
-vercel logs mavrix-insurance-api
-
-# Test local server
-cd server && npm start
-```
+**Note**: Most PWA icon issues are related to file corruption, server configuration, or deployment problems. Start with local testing and work your way up to production deployment.
