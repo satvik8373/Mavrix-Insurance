@@ -12,6 +12,7 @@ import { AuthProvider } from './context/AuthContext';
 import { DataProvider } from './context/DataContext';
 import './App.css';
 import './styles/ios-pwa.css'; // iOS PWA specific styles
+import './styles/ios-pwa-prevention.css'; // iOS PWA prevention styles
 
 function App() {
   return (

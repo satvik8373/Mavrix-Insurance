@@ -23,20 +23,31 @@ const PWAInstallPrompt = () => {
     setIsIOS(checkIOS());
     setIsStandalone(checkStandalone());
 
-    // Listen for beforeinstallprompt event (Android/Chrome)
+    // CRITICAL: Prevent PWA behavior on iOS
+    if (checkIOS()) {
+      console.log('iOS device detected - preventing PWA conversion');
+      // Force browser mode on iOS
+      document.body.classList.remove('pwa-standalone');
+      document.documentElement.classList.remove('pwa-standalone');
+      
+      // Prevent any PWA-related functionality
+      setShowPrompt(false);
+      return;
+    }
+
+    // Listen for beforeinstallprompt event (Android/Chrome only)
     const handleBeforeInstallPrompt = (e) => {
+      // CRITICAL: Block PWA install on iOS
+      if (checkIOS()) {
+        e.preventDefault();
+        console.log('PWA install prompt blocked on iOS');
+        return;
+      }
+      
       e.preventDefault();
       setDeferredPrompt(e);
       setShowPrompt(true);
     };
-
-    // Show iOS-specific prompt
-    if (checkIOS() && !checkStandalone()) {
-      const dismissed = localStorage.getItem('pwa-ios-dismissed');
-      if (!dismissed) {
-        setTimeout(() => setShowPrompt(true), 3000);
-      }
-    }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
@@ -74,7 +85,8 @@ const PWAInstallPrompt = () => {
     );
   };
 
-  if (!showPrompt || isStandalone) {
+  // CRITICAL: Never show PWA prompt on iOS
+  if (isIOS || !showPrompt || isStandalone) {
     return null;
   }
 

@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <!-- New Mavrix Insurance Logo Icons -->
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="192x192" href="%PUBLIC_URL%/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="%PUBLIC_URL%/icon-512.png" />
     
     <!-- iOS PWA Meta Tags - CRITICAL for proper PWA behavior -->
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
@@ -22,10 +25,10 @@
     
     <!-- iOS Touch Icons - MUST be PNG format for iOS -->
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/apple-touch-icon.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="%PUBLIC_URL%/apple-touch-icon-180x180.png" />
-    <link rel="apple-touch-icon" sizes="152x152" href="%PUBLIC_URL%/apple-touch-icon-152x152.png" />
-    <link rel="apple-touch-icon" sizes="120x120" href="%PUBLIC_URL%/apple-touch-icon-120x120.png" />
-    <link rel="apple-touch-icon" sizes="76x76" href="%PUBLIC_URL%/apple-touch-icon-76x76.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="%PUBLIC_URL%/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="%PUBLIC_URL%/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="120x120" href="%PUBLIC_URL%/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="76x76" href="%PUBLIC_URL%/apple-touch-icon.png" />
     
     <!-- iOS Splash Screens - CRITICAL for native app feel -->
     <link rel="apple-touch-startup-image" media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)" href="%PUBLIC_URL%/splash-1290x2796.png" />
@@ -41,6 +44,23 @@
     
     <!-- Responsive Design -->
     <style>
+      /* CRITICAL: Prevent iOS from masking icons and converting to PWA app type */
+      link[rel="icon"], 
+      link[rel="apple-touch-icon"] {
+        -webkit-mask-image: none !important;
+        mask-image: none !important;
+        -webkit-mask-size: auto !important;
+        mask-size: auto !important;
+        -webkit-mask-repeat: initial !important;
+        mask-repeat: initial !important;
+        -webkit-mask-position: initial !important;
+        mask-position: initial !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+      }
+      
       * {
         box-sizing: border-box;
       }
@@ -137,6 +157,40 @@
           padding-right: env(safe-area-inset-right);
         }
       }
+      
+      /* CRITICAL: Prevent iOS PWA conversion and icon masking */
+      @supports (-webkit-touch-callout: none) {
+        /* iOS specific icon protection */
+        link[rel="icon"], 
+        link[rel="apple-touch-icon"] {
+          -webkit-mask-image: none !important;
+          mask-image: none !important;
+          -webkit-mask-size: auto !important;
+          mask-size: auto !important;
+          -webkit-mask-repeat: initial !important;
+          mask-repeat: initial !important;
+          -webkit-mask-position: initial !important;
+          mask-position: initial !important;
+          background: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+          outline: none !important;
+        }
+        
+        /* Prevent PWA standalone mode on iOS */
+        body.pwa-standalone {
+          position: static !important;
+          width: auto !important;
+          height: auto !important;
+          overflow: visible !important;
+        }
+        
+        #root.pwa-standalone {
+          width: auto !important;
+          height: auto !important;
+          overflow: visible !important;
+        }
+      }
     </style>
     
     <title>Mavrix Insurance - Insurance Management</title>
@@ -188,7 +242,13 @@
               // iOS PWA specific - check if running in standalone mode
               if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) {
                 console.log('Running in PWA standalone mode');
-                document.body.classList.add('pwa-standalone');
+                // CRITICAL: Prevent PWA conversion on iOS
+                if (!/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                  document.body.classList.add('pwa-standalone');
+                } else {
+                  console.log('iOS device detected - preventing PWA conversion');
+                  document.body.classList.remove('pwa-standalone');
+                }
               }
             })
             .catch((registrationError) => {
@@ -197,16 +257,34 @@
         });
       }
       
-      // PWA Install Prompt
+      // PWA Install Prompt - CRITICAL: Prevent on iOS
       let deferredPrompt;
       const installPrompt = document.getElementById('pwa-install-prompt');
       const installBtn = document.getElementById('pwa-install-btn');
       const dismissBtn = document.getElementById('pwa-dismiss-btn');
       
+      // CRITICAL: Prevent PWA install prompt on iOS
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      if (isIOS) {
+        console.log('iOS device detected - hiding PWA install prompt');
+        if (installPrompt) {
+          installPrompt.style.display = 'none';
+        }
+      }
+      
       window.addEventListener('beforeinstallprompt', (e) => {
+        // CRITICAL: Prevent PWA install prompt on iOS
+        if (isIOS) {
+          e.preventDefault();
+          console.log('PWA install prompt blocked on iOS');
+          return;
+        }
+        
         e.preventDefault();
         deferredPrompt = e;
-        installPrompt.style.display = 'flex';
+        if (installPrompt) {
+          installPrompt.style.display = 'flex';
+        }
       });
       
       installBtn.addEventListener('click', async () => {
