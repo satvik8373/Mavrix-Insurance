@@ -2,42 +2,81 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="/icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
     <meta name="theme-color" content="#3b82f6" />
     <meta name="description" content="Mavrix Insurance - Insurance Management System" />
     
-    <!-- Advanced PWA Setup -->
+    <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
     
     <!-- iOS PWA Support -->
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Mavrix Insurance" />
     
-    <!-- Comprehensive Icon Support for All Platforms -->
-    <link rel="apple-touch-icon" href="/icon.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/icon.png" />
-    <link rel="apple-touch-icon" sizes="152x152" href="/icon-192.png" />
-    <link rel="apple-touch-icon" sizes="167x167" href="/icon.png" />
-    <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png" />
-    <link rel="apple-touch-icon" sizes="512x512" href="/icon.png" />
-    
-    <!-- Windows Tile Icons -->
-    <meta name="msapplication-TileColor" content="#3b82f6" />
-    <meta name="msapplication-TileImage" content="/icon-192.png" />
-    
-    <!-- Android Chrome Icons -->
-    <link rel="icon" type="image/png" sizes="32x32" href="/icon-192.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/icon-192.png" />
-    
-    <!-- PWA Splash Screens -->
-    <link rel="apple-touch-startup-image" href="/icon.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)">
-    <link rel="apple-touch-startup-image" href="/icon.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)">
-    <link rel="apple-touch-startup-image" href="/icon.png" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)">
-    <link rel="apple-touch-startup-image" href="/icon.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)">
-    <link rel="apple-touch-startup-image" href="/icon.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)">
-    <link rel="apple-touch-startup-image" href="/icon.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)">
+    <!-- Responsive Design -->
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+          'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        overflow-x: hidden;
+      }
+      
+      /* Mobile Responsive Styles */
+      @media (max-width: 768px) {
+        body {
+          font-size: 14px;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        body {
+          font-size: 13px;
+        }
+      }
+      
+      /* PWA Install Prompt Styles */
+      .pwa-install-prompt {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        right: 20px;
+        background: #3b82f6;
+        color: white;
+        padding: 16px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        z-index: 1000;
+      }
+      
+      .pwa-install-prompt button {
+        background: white;
+        color: #3b82f6;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      
+      .pwa-install-prompt .close-btn {
+        background: transparent;
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        margin-left: 8px;
+      }
+    </style>
     
     <title>Mavrix Insurance - Insurance Management</title>
   </head>
@@ -45,85 +84,62 @@
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
     
-    <!-- Simple PWA Install Prompt -->
-    <div id="pwa-prompt" style="display: none; position: fixed; bottom: 20px; left: 20px; right: 20px; background: #3b82f6; color: white; padding: 16px; border-radius: 12px; text-align: center; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
-      <div style="margin-bottom: 12px;">
+    <!-- PWA Install Prompt -->
+    <div id="pwa-install-prompt" class="pwa-install-prompt">
+      <div>
         <strong>Install Mavrix Insurance</strong><br>
         <small>Add to home screen for quick access</small>
       </div>
-      <button id="install-btn" style="background: white; color: #3b82f6; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 8px;">Install</button>
-      <button id="dismiss-btn" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.3); padding: 8px 16px; border-radius: 6px; cursor: pointer;">Dismiss</button>
-    </div>
-    
-    <!-- Update Notification -->
-    <div id="update-notification" style="display: none; position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 12px 16px; border-radius: 8px; z-index: 1001; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-      <span id="update-message">New update available!</span>
-      <button id="refresh-btn" style="background: white; color: #10b981; border: none; padding: 4px 8px; border-radius: 4px; margin-left: 12px; cursor: pointer; font-size: 12px;">Refresh</button>
-      <button id="close-update" style="background: transparent; color: white; border: none; margin-left: 8px; cursor: pointer; font-size: 16px;">×</button>
-    </div>
-    
-    <!-- Offline Indicator -->
-    <div id="offline-indicator" style="display: none; position: fixed; top: 0; left: 0; right: 0; background: #ef4444; color: white; text-align: center; padding: 8px; font-size: 14px; z-index: 9999;">
-      <span>You are currently offline. Some features may be limited.</span>
+      <div>
+        <button id="pwa-install-btn">Install</button>
+        <button id="pwa-dismiss-btn" class="close-btn">×</button>
+      </div>
     </div>
     
     <script>
-      // Simple PWA Features
-      let deferredPrompt;
-      const pwaPrompt = document.getElementById('pwa-prompt');
-      const installBtn = document.getElementById('install-btn');
-      const dismissBtn = document.getElementById('dismiss-btn');
-      
-      // Show iOS-specific instructions
-      if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-        pwaPrompt.style.display = 'block';
-        document.querySelector('#pwa-prompt div').innerHTML = `
-          <strong>Add to Home Screen</strong><br>
-          <small>Tap the share button and select "Add to Home Screen"</small>
-        `;
-        installBtn.style.display = 'none';
+      // Register Service Worker
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
       }
       
-      // Handle install prompt
+      // PWA Install Prompt
+      let deferredPrompt;
+      const installPrompt = document.getElementById('pwa-install-prompt');
+      const installBtn = document.getElementById('pwa-install-btn');
+      const dismissBtn = document.getElementById('pwa-dismiss-btn');
+      
       window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        if (!/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-          pwaPrompt.style.display = 'block';
-        }
+        installPrompt.style.display = 'flex';
       });
       
       installBtn.addEventListener('click', async () => {
         if (deferredPrompt) {
           deferredPrompt.prompt();
           const { outcome } = await deferredPrompt.userChoice;
-          console.log('Install outcome:', outcome);
+          console.log(`User response to the install prompt: ${outcome}`);
           deferredPrompt = null;
-          pwaPrompt.style.display = 'none';
+          installPrompt.style.display = 'none';
         }
       });
       
       dismissBtn.addEventListener('click', () => {
-        pwaPrompt.style.display = 'none';
+        installPrompt.style.display = 'none';
         localStorage.setItem('pwa-dismissed', 'true');
       });
       
-      // Hide if previously dismissed
+      // Hide prompt if previously dismissed
       if (localStorage.getItem('pwa-dismissed') === 'true') {
-        pwaPrompt.style.display = 'none';
-      }
-      
-      // Simple Service Worker Registration
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-              console.log('Service Worker registered successfully:', registration);
-            })
-            .catch(error => {
-              console.error('Service Worker registration failed:', error);
-            });
-        });
+        installPrompt.style.display = 'none';
       }
     </script>
   </body>
