@@ -43,12 +43,54 @@ const enhancePWAIcons = () => {
   }
 };
 
-// Run icon enhancement after DOM is loaded
+// Remove PWA alerts and limited access warnings
+const removePWAAlerts = () => {
+  // Hide PWA install prompt
+  const installPrompt = document.getElementById('pwa-install-prompt');
+  if (installPrompt) {
+    installPrompt.style.display = 'none';
+    installPrompt.style.visibility = 'hidden';
+    installPrompt.style.opacity = '0';
+  }
+
+  // Hide offline indicator
+  const offlineIndicator = document.getElementById('offline-indicator');
+  if (offlineIndicator) {
+    offlineIndicator.style.display = 'none';
+    offlineIndicator.style.visibility = 'hidden';
+    offlineIndicator.style.opacity = '0';
+    offlineIndicator.classList.remove('show');
+  }
+
+  // Remove any other potential alert elements
+  const alerts = document.querySelectorAll('[class*="alert"], [class*="warning"], [class*="notice"]');
+  alerts.forEach(alert => {
+    if (alert.textContent.toLowerCase().includes('limited') || 
+        alert.textContent.toLowerCase().includes('offline') ||
+        alert.textContent.toLowerCase().includes('install')) {
+      alert.style.display = 'none';
+      alert.style.visibility = 'hidden';
+    }
+  });
+
+  // Set localStorage to prevent future alerts
+  localStorage.setItem('pwa-dismissed', 'true');
+  localStorage.setItem('offline-dismissed', 'true');
+};
+
+// Run enhancements after DOM is loaded
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', enhancePWAIcons);
+  document.addEventListener('DOMContentLoaded', () => {
+    enhancePWAIcons();
+    removePWAAlerts();
+  });
 } else {
   enhancePWAIcons();
+  removePWAAlerts();
 }
+
+// Also run alert removal periodically to catch any dynamic alerts
+setInterval(removePWAAlerts, 2000);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

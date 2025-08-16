@@ -709,7 +709,7 @@ link[rel="apple-touch-icon"] {
   object-position: center !important;
 }
 
-/* PWA Install Prompt */
+/* PWA Install Prompt - Hidden by default */
 .pwa-install-prompt {
   position: fixed;
   bottom: var(--spacing-md);
@@ -720,7 +720,7 @@ link[rel="apple-touch-icon"] {
   padding: var(--spacing-md);
   border-radius: var(--border-radius-lg);
   box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
-  display: none;
+  display: none !important;
   align-items: center;
   justify-content: space-between;
   z-index: 1000;
@@ -767,7 +767,7 @@ link[rel="apple-touch-icon"] {
   margin-left: var(--spacing-sm);
 }
 
-/* Offline Indicator */
+/* Offline Indicator - Hidden by default */
 .offline-indicator {
   position: fixed;
   top: 0;
@@ -781,6 +781,7 @@ link[rel="apple-touch-icon"] {
   z-index: 1001;
   transform: translateY(-100%);
   transition: transform 0.3s ease;
+  display: none !important;
 }
 
 .offline-indicator.show {

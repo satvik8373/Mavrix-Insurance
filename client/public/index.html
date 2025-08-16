@@ -99,8 +99,8 @@
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
     
-    <!-- PWA Install Prompt -->
-    <div id="pwa-install-prompt" class="pwa-install-prompt">
+    <!-- PWA Install Prompt - Hidden by default -->
+    <div id="pwa-install-prompt" class="pwa-install-prompt" style="display: none;">
       <div>
         <strong>Install Mavrix Insurance</strong><br>
         <small>Add to home screen for quick access</small>
@@ -111,8 +111,8 @@
       </div>
     </div>
 
-    <!-- Offline Indicator -->
-    <div id="offline-indicator" class="offline-indicator">
+    <!-- Offline Indicator - Hidden by default -->
+    <div id="offline-indicator" class="offline-indicator" style="display: none;">
       <span>You are currently offline. Some features may be limited.</span>
     </div>
     
@@ -130,16 +130,18 @@
         });
       }
       
-      // PWA Install Prompt
+      // PWA Install Prompt - Disabled by default
       let deferredPrompt;
       const installPrompt = document.getElementById('pwa-install-prompt');
       const installBtn = document.getElementById('pwa-install-btn');
       const dismissBtn = document.getElementById('pwa-dismiss-btn');
       
+      // Disable automatic PWA install prompt
       window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        installPrompt.style.display = 'flex';
+        // Don't show the prompt automatically - keep it hidden
+        installPrompt.style.display = 'none';
       });
       
       installBtn.addEventListener('click', async () => {
@@ -157,25 +159,22 @@
         localStorage.setItem('pwa-dismissed', 'true');
       });
       
-      // Hide prompt if previously dismissed
-      if (localStorage.getItem('pwa-dismissed') === 'true') {
-        installPrompt.style.display = 'none';
-      }
+      // Always hide prompt by default
+      installPrompt.style.display = 'none';
+      localStorage.setItem('pwa-dismissed', 'true');
 
-      // Offline detection
+      // Offline detection - Disabled to prevent alerts
       const offlineIndicator = document.getElementById('offline-indicator');
       
       function updateOnlineStatus() {
-        if (navigator.onLine) {
-          offlineIndicator.classList.remove('show');
-        } else {
-          offlineIndicator.classList.add('show');
-        }
+        // Always hide offline indicator to prevent "limited access" alerts
+        offlineIndicator.classList.remove('show');
+        offlineIndicator.style.display = 'none';
       }
 
       window.addEventListener('online', updateOnlineStatus);
       window.addEventListener('offline', updateOnlineStatus);
-      updateOnlineStatus(); // Check initial status
+      updateOnlineStatus(); // Check initial status and hide indicator
     </script>
   </body>
 </html>
